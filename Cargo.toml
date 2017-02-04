@@ -1,0 +1,8 @@
+[package]
+name = "macrobm"
+version = "0.1.0"
+authors = ["Jonas Toth <jonas.toth@gmail.com>"]
+
+[dependencies]
+clap = "2.20.2"
+term-painter = "0.2"
