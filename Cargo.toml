@@ -6,4 +6,5 @@ authors = ["Jonas Toth <jonas.toth@gmail.com>"]
 [dependencies]
 clap = "2.19"
 term-painter = "0.2"
-serde_json = "0.9.5"
+yaml-rust = "*"
+rustbox = "*"
