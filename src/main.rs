@@ -50,6 +50,9 @@ fn main() {
     config_file.read_to_string(&mut config_file_content).unwrap();
     let bm = YamlLoader::load_from_str(&config_file_content).unwrap();
 
+    //println!("{:?}", bm);
+    //println!("{:?}", bm[0]);
+
     /// ---------------- Configuration for the rustbox tui
     let rustbox = match RustBox::init(Default::default()) {
         Result::Ok(v) => v,
@@ -66,7 +69,7 @@ fn main() {
         /// -------------- printing the status of the benchmarking
         rustbox.clear();
         term_printer::print_control_message(&rustbox);
-        term_printer::print_benchmarks(&rustbox, &bm);
+        term_printer::print_benchmarks(&rustbox, &bm[0]);
         rustbox.present();
 
         /// --------------- key polling - control

@@ -9,10 +9,10 @@ cases:
     - command: "../ulf.x -f hReactor.ulf"
       count: 10
 
-    - command: "../ulf.x -f hReactor.ulf"
-      environment: "OMP_THREADS=4"
-      directory: "/home/jonas/Programme/execution_directory"
+      #- command: "../ulf.x -f hReactor.ulf"
+      #environment: "OMP_THREADS=4"
+      #directory: "/home/jonas/Programme/execution_directory"
 
-    - command: "../ulf.x -f hReactor.ulf"
+      #- command: "../ulf.x -f hReactor.ulf"
 
 outputfile: "profiling_today.yml"

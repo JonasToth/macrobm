@@ -14,16 +14,21 @@ pub fn print_control_message(tui: &RustBox) {
 }
 
 
-pub fn print_benchmarks(tui: &RustBox, bms: &Vec<Yaml>) {
+pub fn print_benchmarks(tui: &RustBox, bms: &Yaml) {
     /// print the headline
     tui.print(1,5, rustbox::RB_UNDERLINE, Color::White, Color::Default, "Runs");
     tui.print(8,5, rustbox::RB_UNDERLINE, Color::White, Color::Default, "Benchmark");
 
     let mut line = 7;
-    for benchmark in bms {
+    for benchmark in bms["cases"].as_vec().unwrap() {
         tui.print(1,line, rustbox::RB_NORMAL, Color::Green, Color::Default, "1");
-        tui.print(8,line, rustbox::RB_NORMAL, Color::White, Color::Default, "lol");
-                  //benchmark["command"].as_str().unwrap());
+        
+        let configured_name = benchmark["name"].as_str();
+        match configured_name {
+            Some(name) => tui.print(8,line, rustbox::RB_NORMAL, Color::White, Color::Default, name),
+            None => tui.print(8,line, rustbox::RB_NORMAL, Color::White, Color::Default, "No Name provided"),
+        }
+
 
         line = line + 1;
     }
