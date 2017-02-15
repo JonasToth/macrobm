@@ -19,12 +19,20 @@ extern crate rustbox;
 use rustbox::{Color, RustBox};
 use rustbox::Key;
 
-// subprocesses
-use std::process::Command;
-
 // time measurement and stuff
 use std::{thread, time, fs};
 use std::io::Read;
+
+// error handling
+use std::error::Error;
+use std::default::Default;
+
+// subprocesses to call the command we want to measure
+use std::process::Command;
+
+// time measurement and and threading
+use threadpool::ThreadPool;
+use std::sync::mpsc::channel;
 
 // custom functions written by me, for code clearity
 mod term_printer;
