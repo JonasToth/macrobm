@@ -19,9 +19,10 @@ use std::default::Default;
 use std::process::Command;
 
 // time measurement and and threading
+extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
-use std::time;
+use std::time::{Duration, Instant};
 
 // custom functions written by me, for code clearity
 mod term_printer;
@@ -40,6 +41,11 @@ fn main() {
                             .value_name("FILE")
                             .help("Configuration for the macro benchmarks")
                        )
+                       .arg(Arg::with_name("jobs")
+                                .short("j")
+                                .takes_value(true)
+                                .help("Control how many thread shall be used to run the benchmarks")
+                        )
                        .get_matches();
 
     /// ---------------- Configuration for the rustbox tui
@@ -52,33 +58,65 @@ fn main() {
     term_printer::print_control_message(&rustbox);
     rustbox.present();
 
-    loop {
-        /// -------------- printing the status of the benchmarking
-        rustbox.clear();
-        term_printer::print_control_message(&rustbox);
-        rustbox.print(1, 3, rustbox::RB_NORMAL, Color::White, Color::Default, ""); 
 
-        rustbox.present();
+    /// --------------- Configure multithreading for the benchmarks
+    let n_workers = matches.value_of("jobs").unwrap_or("1");
+    let n_workers = n_workers.parse::<usize>().unwrap();
+    let n_jobs = 8;
 
-        /// --------------- key polling - control
-        match rustbox.poll_event(false) {
-            /// key input
-            Ok(rustbox::Event::KeyEvent(key)) => {
-                match key {
-                    Key::Char('q') => { break; }
-                    Key::Char('p') => { 
-                        rustbox.print(1, 4, rustbox::RB_NORMAL, Color::White, 
-                                      Color::Default, "Penis"); 
-                        rustbox.present();
-                    }
-                    _ => {}
-                }
-            },
-            Err(e) => panic!("{}", e.description()),
-            _ => {}
-        }
+    /// --------------- Setup communication structure for timing results
+    let pool = ThreadPool::new(n_workers);
+    let (tx, rx) = channel();
 
-        /// sleep for some milliseconds to reduce unnecessary cpu load
-        thread::sleep(time::Duration::from_millis(50));
+    for _ in 0..n_jobs {
+        let tx = tx.clone();
+
+        pool.execute(move || {
+            let start_time = Instant::now();
+
+            let mut child = Command::new("/bin/sleep")
+                                    .arg("2")
+                                    .spawn()
+                                    .expect("program failed");
+            let ecode = child.wait()
+                             .expect("failed to wait on programm");
+
+            let execution_time = start_time.elapsed().as_secs();
+            tx.send(execution_time).unwrap();
+        });
     }
+
+    assert!(rx.iter().take(n_jobs).fold(0, |a,b| a + b) > 0);
+
+    /*
+        loop {
+            /// -------------- printing the status of the benchmarking
+            rustbox.clear();
+            term_printer::print_control_message(&rustbox);
+            rustbox.print(1, 3, rustbox::RB_NORMAL, Color::White, Color::Default, ""); 
+
+            rustbox.present();
+
+            /// --------------- key polling - control
+            match rustbox.poll_event(false) {
+                /// key input
+                Ok(rustbox::Event::KeyEvent(key)) => {
+                    match key {
+                        Key::Char('q') => { break; }
+                        Key::Char('p') => { 
+                            rustbox.print(1, 4, rustbox::RB_NORMAL, Color::White, 
+                                          Color::Default, "Penis"); 
+                            rustbox.present();
+                        }
+                        _ => {}
+                    }
+                },
+                Err(e) => panic!("{}", e.description()),
+                _ => {}
+            }
+
+            /// sleep for some milliseconds to reduce unnecessary cpu load
+            thread::sleep(time::Duration::from_millis(50));
+        }
+    */
 }
