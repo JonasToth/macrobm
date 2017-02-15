@@ -15,9 +15,12 @@ extern crate yaml_rust;
 use yaml_rust::{YamlLoader, YamlEmitter};
 
 // terminal user interface
-extern crate rustbox; 
-use rustbox::{Color, RustBox};
-use rustbox::Key;
+extern crate term_printer;
+use term_printer::*;
+
+//extern crate rustbox; 
+//use rustbox::{Color, RustBox};
+//use rustbox::Key;
 
 // time measurement and stuff
 use std::{thread, time, fs};
@@ -37,7 +40,7 @@ use std::sync::mpsc::channel;
 use std::time::{Duration, Instant};
 
 // custom functions written by me, for code clearity
-mod term_printer;
+mod messages;
 
 
 fn main() {
