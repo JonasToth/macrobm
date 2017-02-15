@@ -11,7 +11,7 @@ pub fn intro() {
     println!("");
 }
 
-pub fn start_program(name: &str) {
+pub fn start_program(name: String) {
     println!("Starting {}", Bold.paint(name));
 }
 

@@ -64,44 +64,63 @@ fn main() {
     config_file.read_to_string(&mut config_file_content).unwrap();
     let bm = YamlLoader::load_from_str(&config_file_content).unwrap();
 
-    println!("{:?}", bm);
-    println!("{:?}", bm[0]);
-
+    /// --------------- Build the List of Commands necessary to start
     let bms = &bm[0];
 
-    /// ---------------- Present first view
+    /// --------------- Present first view
     messages::intro();
 
     /// --------------- Configure multithreading for the benchmarks
+    /// --------------- Setup communication structure for timing results
     let n_workers = matches.value_of("jobs").unwrap_or("1");
     let n_workers = n_workers.parse::<usize>().unwrap();
-    let n_jobs = 8;
-
-    /// --------------- Setup communication structure for timing results
     let pool = ThreadPool::new(n_workers);
     let (tx, rx) = channel();
 
+    let mut scheduled = 0;
+
     for benchmark in bms["cases"].as_vec().unwrap() {
-        let tx = tx.clone();
+        println!("Count");
+        let runcount = benchmark["count"].as_i64().unwrap();
+        println!("{}", runcount);
 
-        pool.execute(move || {
-            messages::start_program(benchmark["name"].as_str().unwrap());
+        for _ in 0..runcount {
+            let tx = tx.clone();
+            // so ugly, the parsing should be outside the loop, and copies should be made
+            println!("Name");
+            let name_str = benchmark["name"].as_str().unwrap().to_string();
+            println!("Command");
+            let command_str = benchmark["command"].as_str().unwrap().to_string();
+            println!("Args");
+            let args = benchmark["args"].as_vec().unwrap();
+            let argument_list = yaml_args_to_stringlist(args);
+            println!("{:?}", args);
+            println!("Thread");
+            pool.execute(move || {
+                messages::start_program(name_str);
 
-            let start_time = Instant::now();
-            let mut child = Command::new(benchmark["command"].as_str().unwrap())
-                                    //.arg("2")
-                                    .spawn()
-                                    .expect("program failed");
-            let ecode = child.wait()
-                             .expect("failed to wait on programm");
-            let execution_time = start_time.elapsed().as_secs();
+                let start_time = Instant::now();
+                let mut child = Command::new(command_str)
+                                        //.args(args)
+                                        .arg("1")
+                                        .spawn()
+                                        .expect("program failed");
+                let ecode = child.wait()
+                                 .expect("failed to wait on programm");
 
-            messages::finished_program(execution_time);
+                /// build execution report
+                let execution_time = start_time.elapsed().as_secs();
+                tx.send(execution_time).unwrap();
 
-            tx.send(execution_time).unwrap();
-        });
+                messages::finished_program(execution_time);
+            });
+            scheduled+= 1;
+        }
     } 
-    assert!(rx.iter().take(n_jobs).fold(0, |a,b| a + b) > 0);
+    for _ in 0..scheduled {
+        let report = rx.recv().unwrap();
+        println!("Reported {}", report);
+    }
 
     messages::finished();
 }
