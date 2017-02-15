@@ -2,14 +2,26 @@
 // execution and is able to compare run times.
 // Provide shell scripts that shall be measured!
 
+// error handling
+use std::error::Error;
+use std::default::Default;
+
 // command line parser
 extern crate clap;
 use clap::{Arg, App};
+
+// yaml loading for configuration and result output
+extern crate yaml_rust;
+use yaml_rust::{YamlLoader, YamlEmitter};
 
 // terminal user interface
 extern crate rustbox; 
 use rustbox::{Color, RustBox};
 use rustbox::Key;
+
+// time measurement and stuff
+use std::{thread, time, fs};
+use std::io::Read;
 
 // error handling
 use std::error::Error;
@@ -26,7 +38,6 @@ use std::time::{Duration, Instant};
 
 // custom functions written by me, for code clearity
 mod term_printer;
-use term_printer::*;
 
 
 fn main() {
@@ -48,6 +59,15 @@ fn main() {
                         )
                        .get_matches();
 
+    /// ---------------- Read configuration for the benchmarks
+    let mut config_file = fs::File::open("macro.yml").unwrap();
+    let mut config_file_content = String::new();
+    config_file.read_to_string(&mut config_file_content).unwrap();
+    let bm = YamlLoader::load_from_str(&config_file_content).unwrap();
+
+    //println!("{:?}", bm);
+    //println!("{:?}", bm[0]);
+
     /// ---------------- Configuration for the rustbox tui
     let rustbox = match RustBox::init(Default::default()) {
         Result::Ok(v) => v,
@@ -57,7 +77,6 @@ fn main() {
     /// ---------------- Present first view
     term_printer::print_control_message(&rustbox);
     rustbox.present();
-
 
     /// --------------- Configure multithreading for the benchmarks
     let n_workers = matches.value_of("jobs").unwrap_or("1");
