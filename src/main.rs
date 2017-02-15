@@ -15,11 +15,13 @@ use rustbox::Key;
 use std::error::Error;
 use std::default::Default;
 
-// subprocesses
+// subprocesses to call the command we want to measure
 use std::process::Command;
 
-// time measurement and stuff
-use std::{thread, time};
+// time measurement and and threading
+use threadpool::ThreadPool;
+use std::sync::mpsc::channel;
+use std::time;
 
 // custom functions written by me, for code clearity
 mod term_printer;
