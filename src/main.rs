@@ -15,8 +15,8 @@ extern crate yaml_rust;
 use yaml_rust::{YamlLoader, YamlEmitter};
 
 // terminal user interface
-extern crate term_printer;
-use term_printer::*;
+extern crate term_painter;
+use term_painter::*;
 
 //extern crate rustbox; 
 //use rustbox::{Color, RustBox};
@@ -25,10 +25,6 @@ use term_printer::*;
 // time measurement and stuff
 use std::{thread, time, fs};
 use std::io::Read;
-
-// error handling
-use std::error::Error;
-use std::default::Default;
 
 // subprocesses to call the command we want to measure
 use std::process::Command;
@@ -68,18 +64,13 @@ fn main() {
     config_file.read_to_string(&mut config_file_content).unwrap();
     let bm = YamlLoader::load_from_str(&config_file_content).unwrap();
 
-    //println!("{:?}", bm);
-    //println!("{:?}", bm[0]);
+    println!("{:?}", bm);
+    println!("{:?}", bm[0]);
 
-    /// ---------------- Configuration for the rustbox tui
-    let rustbox = match RustBox::init(Default::default()) {
-        Result::Ok(v) => v,
-        Result::Err(e) => panic!("{}", e),
-    };
+    let bms = &bm[0];
 
     /// ---------------- Present first view
-    term_printer::print_control_message(&rustbox);
-    rustbox.present();
+    messages::intro();
 
     /// --------------- Configure multithreading for the benchmarks
     let n_workers = matches.value_of("jobs").unwrap_or("1");
@@ -90,55 +81,27 @@ fn main() {
     let pool = ThreadPool::new(n_workers);
     let (tx, rx) = channel();
 
-    for _ in 0..n_jobs {
+    for benchmark in bms["cases"].as_vec().unwrap() {
         let tx = tx.clone();
 
         pool.execute(move || {
-            let start_time = Instant::now();
+            messages::start_program(benchmark["name"].as_str().unwrap());
 
-            let mut child = Command::new("/bin/sleep")
-                                    .arg("2")
+            let start_time = Instant::now();
+            let mut child = Command::new(benchmark["command"].as_str().unwrap())
+                                    //.arg("2")
                                     .spawn()
                                     .expect("program failed");
             let ecode = child.wait()
                              .expect("failed to wait on programm");
-
             let execution_time = start_time.elapsed().as_secs();
+
+            messages::finished_program(execution_time);
+
             tx.send(execution_time).unwrap();
         });
-    }
-
+    } 
     assert!(rx.iter().take(n_jobs).fold(0, |a,b| a + b) > 0);
 
-    /*
-        loop {
-            /// -------------- printing the status of the benchmarking
-            rustbox.clear();
-            term_printer::print_control_message(&rustbox);
-            rustbox.print(1, 3, rustbox::RB_NORMAL, Color::White, Color::Default, ""); 
-
-            rustbox.present();
-
-            /// --------------- key polling - control
-            match rustbox.poll_event(false) {
-                /// key input
-                Ok(rustbox::Event::KeyEvent(key)) => {
-                    match key {
-                        Key::Char('q') => { break; }
-                        Key::Char('p') => { 
-                            rustbox.print(1, 4, rustbox::RB_NORMAL, Color::White, 
-                                          Color::Default, "Penis"); 
-                            rustbox.present();
-                        }
-                        _ => {}
-                    }
-                },
-                Err(e) => panic!("{}", e.description()),
-                _ => {}
-            }
-
-            /// sleep for some milliseconds to reduce unnecessary cpu load
-            thread::sleep(time::Duration::from_millis(50));
-        }
-    */
+    messages::finished();
 }

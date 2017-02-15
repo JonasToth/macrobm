@@ -6,7 +6,8 @@ cases:
       directory: "/home/jonas/Programme/execution_directory" # default to current dir
       count: 10                                              # optional
 
-    - command: "../ulf.x -f hReactor.ulf"
+    - name: "Fuchs"
+      command: "../ulf.x -f hReactor.ulf"
       count: 10
 
       #- command: "../ulf.x -f hReactor.ulf"
