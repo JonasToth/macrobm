@@ -28,6 +28,7 @@ extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
 use std::time::Instant;
+use std::collections::HashMap;
 
 // custom functions written by me, for code clearity
 mod messages;
@@ -36,6 +37,8 @@ mod config;
 // results of the benchmarks
 mod execution_report;
 use execution_report::Report;
+// statistics for the durations
+mod statistics;
 
 
 fn main() {
@@ -73,6 +76,10 @@ fn main() {
     /// --------------- Build the List of Commands necessary to start
     let bms = &bm[0];
 
+
+    /// --------------- Create place to save all results of the benchmarking
+    let mut bm_statistics = HashMap::new();
+
     /// --------------- Present first view
 
     /// --------------- Configure multithreading for the benchmarks
@@ -96,8 +103,12 @@ fn main() {
 
         messages::scheduled_command(&name_str, runcount);
 
+        // enable statistic collection for that command
+        bm_statistics.insert(name_str.clone(), Vec::<f32>::new());
+
         for _ in 0..runcount {
             let tx = tx.clone();
+            let name_str = name_str.clone();
             let command_str = command_str.clone();
 
             let empty_args = Vec::<Yaml>::new();
@@ -122,7 +133,7 @@ fn main() {
 
                 /// build execution report
                 let execution_time = start_time.elapsed();
-                tx.send(Report::new(&command_str, execution_time, ecode)).unwrap();
+                tx.send(Report::new(name_str.clone(), execution_time, ecode)).unwrap();
             });
             scheduled+= 1;
         }
@@ -132,13 +143,17 @@ fn main() {
 
     for _ in 0..scheduled {
         let report = rx.recv().unwrap();
+
         // process report
+        match bm_statistics.get_mut(&report.name) {
+            Some(ref mut vec) => vec.push(report.duration),
+            None => ()
+        };
         
         // output information
         messages::finished_program(report);
     }
 
-    // output final report / file output
-
     messages::finished();
+    statistics::process_results(bm_statistics);
 }

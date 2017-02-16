@@ -14,7 +14,8 @@ pub fn invalid_config_filename(fname: &str) {
 }
 
 pub fn scheduled_command(name: &str, count: i64) {
-    println!("Scheduling {} for {} runs", Bold.paint(name), Bold.paint(count));
+    println!("{} {} for {} runs", Blue.paint("Scheduling"), Bold.paint(name), 
+                                  Bold.paint(count));
 }
 
 pub fn finished_program(report: Report)
@@ -34,5 +35,5 @@ pub fn finished_program(report: Report)
 }
 
 pub fn finished() {
-    println!("Finished running benchmarks.!");
+    println!("{}", Green.bold().paint("Finished running benchmarks.!"));
 }
