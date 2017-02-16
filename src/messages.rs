@@ -11,7 +11,7 @@ pub fn invalid_config_filename(fname: &str) {
     println!("{} could not open file {} as config.", Red.bold().paint("Failure"), Red.paint(fname));
 }
 
-pub fn scheduled_command(name: String, count: i64) {
+pub fn scheduled_command(name: &str, count: i64) {
     println!("Scheduling {} for {} runs", Bold.paint(name), Bold.paint(count));
 }
 

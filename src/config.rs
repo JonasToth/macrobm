@@ -9,9 +9,10 @@ pub fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String>
     for arg_candidate in args {
         match arg_candidate {
             &Yaml::Real(ref a)   => result.push(a.clone()),
-            &Yaml::Integer(ref a)    => result.push(a.to_string()),
+            &Yaml::Integer(ref a)=> result.push(a.to_string()),
             &Yaml::String(ref a) => result.push(a.clone()),
-            _       => panic!("Wrong argument type passed for that command!"),
+            &Yaml::Null          => (),
+            _                    => panic!("Wrong argument type passed for that command!"),
         }
     }
 

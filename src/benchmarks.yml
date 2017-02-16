@@ -1,16 +1,12 @@
 cases:
     - name: "hReactor_uc"                                    # necessary? maybe command will be substituted
-      describtion: "Running with ulf chemistry as solver"    # optional
       command: "/bin/sleep"                                  # needed
       args: ["1",]                                           # arguments passed to the command
       environment: ["LIST=2", "BLA=2"]                       # optional
       directory: "/home/jonas/Programme/execution_directory" # default to current dir
       count: 10                                              # optional
 
-    - name: "output_something"
-      description: "Wait for some seconds and procude ouput"
-      command: "produce.sh"
-      args: ["",]
+    - command: "produce.sh"
       count: 10
 
       #- name: "Fuchs"

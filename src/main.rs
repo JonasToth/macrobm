@@ -14,7 +14,7 @@ extern crate term_painter;
 
 // yaml loading for configuration and result output
 extern crate yaml_rust;
-use yaml_rust::YamlLoader;
+use yaml_rust::{YamlLoader,Yaml};
 
 // time measurement and stuff
 use std::fs;
@@ -84,16 +84,24 @@ fn main() {
     let mut scheduled = 0;
 
     for benchmark in bms["cases"].as_vec().unwrap() {
+        let command_str = benchmark["command"].as_str().unwrap().to_string();
         let runcount = benchmark["count"].as_i64().unwrap_or(1);
-        let name_str = benchmark["name"].as_str().unwrap().to_string();
+        // either there is a name given, or the command will be used
+        let name_str = benchmark["name"].as_str().unwrap_or(
+                            benchmark["command"].as_str().unwrap()
+                       ).to_string();
 
-        messages::scheduled_command(name_str, runcount);
+        messages::scheduled_command(&name_str, runcount);
 
         for _ in 0..runcount {
             let tx = tx.clone();
-            // so ugly, the parsing should be outside the loop, and copies should be made
-            let command_str = benchmark["command"].as_str().unwrap().to_string();
-            let args = benchmark["args"].as_vec().unwrap();
+            let command_str = command_str.clone();
+
+            let empty_args = Vec::<Yaml>::new();
+            let args = match benchmark["args"].as_vec() {
+                Some(v) => v,
+                None    => &empty_args,
+            };
             let argument_list = config::yaml_args_to_stringlist(args);
 
             pool.execute(move || {
@@ -105,9 +113,9 @@ fn main() {
                                         .stdout(Stdio::null())
                                         .stderr(Stdio::null())
                                         .spawn()
-                                        .expect("program failed");
+                                        .expect("program start failed");
                 let _ = child.wait()
-                                 .expect("failed to wait on programm");
+                             .expect("failed to wait on programm");
 
                 /// build execution report
                 let execution_time = start_time.elapsed().as_secs();
