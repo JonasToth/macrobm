@@ -3,13 +3,6 @@ use term_painter::ToStyle;
 use term_painter::Color::*;
 use term_painter::Attr::*;
 
-extern crate yaml_rust;
-use yaml_rust::{Yaml};
-
-use std::time::Duration;
-use std::process::ExitStatus;
-
-
 pub fn intro(worker: usize) {
     println!("Running {} {} threads", Bold.paint("macro benchmarks"), worker);
 }

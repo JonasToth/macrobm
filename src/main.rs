@@ -3,40 +3,36 @@
 // Provide shell scripts that shall be measured!
 
 // error handling
-use std::error::Error;
-use std::default::Default;
+//use std::error::Error;
+//use std::default::Default;
 
 // command line parser
 extern crate clap;
 use clap::{Arg, App};
 
+extern crate term_painter;
+
 // yaml loading for configuration and result output
 extern crate yaml_rust;
-use yaml_rust::{YamlLoader, YamlEmitter};
-
-// terminal user interface
-extern crate term_painter;
-use term_painter::*;
-
-//extern crate rustbox; 
-//use rustbox::{Color, RustBox};
-//use rustbox::Key;
+use yaml_rust::YamlLoader;
 
 // time measurement and stuff
-use std::{thread, time, fs};
+use std::fs;
 use std::io::Read;
 
 // subprocesses to call the command we want to measure
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 // time measurement and and threading
 extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 // custom functions written by me, for code clearity
 mod messages;
+// parse the yaml configuration files and build the internal data structures
+mod config_parsing;
 
 
 fn main() {
@@ -89,11 +85,9 @@ fn main() {
         for _ in 0..runcount {
             let tx = tx.clone();
             // so ugly, the parsing should be outside the loop, and copies should be made
-            let name_str = benchmark["name"].as_str().unwrap().to_string();
             let command_str = benchmark["command"].as_str().unwrap().to_string();
             let args = benchmark["args"].as_vec().unwrap();
-            //let argument_list = yaml_args_to_stringlist(args);
-            let argument_list = ["",];
+            let argument_list = config_parsing::yaml_args_to_stringlist(args);
 
             pool.execute(move || {
                 //messages::start_program(name_str);
@@ -101,10 +95,11 @@ fn main() {
                 let start_time = Instant::now();
                 let mut child = Command::new(command_str)
                                         .args(&argument_list)
-                                        //.arg("1")
+                                        .stdout(Stdio::null())
+                                        .stderr(Stdio::null())
                                         .spawn()
                                         .expect("program failed");
-                let ecode = child.wait()
+                let _ = child.wait()
                                  .expect("failed to wait on programm");
 
                 /// build execution report
