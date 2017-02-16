@@ -32,7 +32,7 @@ use std::time::Instant;
 // custom functions written by me, for code clearity
 mod messages;
 // parse the yaml configuration files and build the internal data structures
-mod config_parsing;
+mod config;
 
 
 fn main() {
@@ -52,10 +52,17 @@ fn main() {
                                 .takes_value(true)
                                 .help("Control how many thread shall be used to run the benchmarks")
                         )
+                       // TODO add option for execution directory
+                       // TODO add option for output file .yml
                        .get_matches();
 
     /// ---------------- Read configuration for the benchmarks
-    let mut config_file = fs::File::open("benchmarks.yml").unwrap();
+    let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
+    let mut config_file = match fs::File::open(cfg_file_name) {
+        Ok(file) => file,
+        Err(e)   => { messages::invalid_config_filename(cfg_file_name);
+                      panic!("{}", e); }
+    };
     let mut config_file_content = String::new();
     config_file.read_to_string(&mut config_file_content).unwrap();
     let bm = YamlLoader::load_from_str(&config_file_content).unwrap();
@@ -87,7 +94,7 @@ fn main() {
             // so ugly, the parsing should be outside the loop, and copies should be made
             let command_str = benchmark["command"].as_str().unwrap().to_string();
             let args = benchmark["args"].as_vec().unwrap();
-            let argument_list = config_parsing::yaml_args_to_stringlist(args);
+            let argument_list = config::yaml_args_to_stringlist(args);
 
             pool.execute(move || {
                 //messages::start_program(name_str);
