@@ -3,6 +3,8 @@ use term_painter::ToStyle;
 use term_painter::Color::*;
 use term_painter::Attr::*;
 
+use execution_report::Report;
+
 pub fn intro(worker: usize) {
     println!("Running {} {} threads", Bold.paint("macro benchmarks"), worker);
 }
@@ -15,15 +17,20 @@ pub fn scheduled_command(name: &str, count: i64) {
     println!("Scheduling {} for {} runs", Bold.paint(name), Bold.paint(count));
 }
 
-pub fn finished_program(report: u64)
+pub fn finished_program(report: Report)
 {
     // err_code.success()
-    let state_string = if true { Green.bold().paint("Success") } 
-                       else { Red.bold().paint("Failed") };
-    let execution_time_seconds = report;
+    let state_string = if report.ecode.success() { Green.bold().paint("Success") } 
+                       else { Red.bold().paint("Failure") };
+    let exec_time = report.duration;
+    let seconds = exec_time.floor();
+    let tenth = ((exec_time - seconds) * 10.).floor();
 
-    println!("{} {} after {} seconds", state_string, Bold.paint("DummyRightNow"), 
-                                       Bold.paint(execution_time_seconds));
+
+
+    println!("{} {} after {}{}{} {}", state_string, Bold.paint(report.name), 
+                                      Bold.paint(seconds), Bold.paint("."), 
+                                      Bold.paint(tenth), Bold.paint("seconds"));
 }
 
 pub fn finished() {

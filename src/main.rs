@@ -33,6 +33,9 @@ use std::time::Instant;
 mod messages;
 // parse the yaml configuration files and build the internal data structures
 mod config;
+// results of the benchmarks
+mod execution_report;
+use execution_report::Report;
 
 
 fn main() {
@@ -108,18 +111,18 @@ fn main() {
                 //messages::start_program(name_str);
 
                 let start_time = Instant::now();
-                let mut child = Command::new(command_str)
+                let mut child = Command::new(&command_str)
                                         .args(&argument_list)
                                         .stdout(Stdio::null())
                                         .stderr(Stdio::null())
                                         .spawn()
                                         .expect("program start failed");
-                let _ = child.wait()
-                             .expect("failed to wait on programm");
+                let ecode = child.wait()
+                                 .expect("failed to wait on programm");
 
                 /// build execution report
-                let execution_time = start_time.elapsed().as_secs();
-                tx.send(execution_time).unwrap();
+                let execution_time = start_time.elapsed();
+                tx.send(Report::new(&command_str, execution_time, ecode)).unwrap();
             });
             scheduled+= 1;
         }
