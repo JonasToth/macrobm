@@ -46,7 +46,7 @@ mod statistics;
 fn main() {
     /// ---------------- Configuration for the command line parser
     let matches = App::new("macrobm")
-                       .version("v0.1-beta")
+                       .version("v0.2")
                        .author("Jonas Toth <jonas.toth@gmail.com>")
                        .about("Times execution time of commands and produces statistics.")
                        .arg(Arg::with_name("config")
