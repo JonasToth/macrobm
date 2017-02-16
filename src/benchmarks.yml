@@ -4,10 +4,10 @@ cases:
       args: ["1",]                                           # arguments passed to the command
       environment: ["LIST=2", "BLA=2"]                       # optional
       directory: "/home/jonas/Programme/execution_directory" # default to current dir
-      count: 10                                              # optional
+      count: 5                                              
 
     - command: "produce.sh"
-      count: 10
+      count: 5
 
       #- name: "Fuchs"
       #command: "/bin/sleep"

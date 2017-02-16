@@ -5,9 +5,9 @@ authors = ["Jonas Toth <jonas.toth@gmail.com>"]
 
 [dependencies]
 clap = "2.19"
+term-painter = "0.2"
 yaml-rust = "*"
 
-term-painter = "0.2"
-rustbox = "*"
-
 threadpool = "1.0"
+
+stat = "0.2.0"

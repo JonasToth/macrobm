@@ -30,6 +30,8 @@ use std::sync::mpsc::channel;
 use std::time::Instant;
 use std::collections::HashMap;
 
+extern crate stat;
+
 // custom functions written by me, for code clearity
 mod messages;
 // parse the yaml configuration files and build the internal data structures
@@ -155,5 +157,6 @@ fn main() {
     }
 
     messages::finished();
-    statistics::process_results(bm_statistics);
+    messages::intro_report();
+    statistics::process_results(&bm_statistics);
 }
