@@ -1,3 +1,43 @@
+//! MacroBM is a tool to run macro benchmarks for arbitrary programs. It is easily configured via
+//! .yml-Files and gives you some statistical information about the configured cases.
+//!
+//! The goal of this program is to provide an easy and extensible way to configure and run macro
+//! benchmarks for your programs. Mainly developed to evaluate a numeric code, it wants to be
+//! general :)
+//!
+//! # Example
+//! ## benchmarks.yml - default name for configuration files
+//! cases:
+//!    - name: "computation"                                    # necessary? maybe command will be substituted
+//!      command: "/bin/sleep"                                  # needed
+//!      args: ["1",]                                           # arguments passed to the command
+//!      environment: ["LIST=2", "BLA=2"]                       # optional
+//!      directory: "/home/user/bin/project/executiondirectory" # default to current dir
+//!      count: 5                                               # defaults to 1
+//!
+//! ## How to use?
+
+//! - go into directory with the configuration file
+//! - run `macrobm`, results in `results.yml`, with raw data
+//! `Running macro benchmarks 1 threads
+//! Scheduling hReactor_uc for 5 runs
+//! Scheduling produce.sh for 5 runs
+//! Finished running benchmarks.!                                                                                      
+//! ===========================================================================
+//! Avg        Dev      Min     Max     Name                
+//! 1.01 0.1%     1.00     1.01 hReactor_uc
+//! 2.00 0.0%     2.00     2.01 produce.sh`
+//! 
+//! ## Run configuration
+//! - use many cores with `-jN`, like GNU make
+//! - custom configuration file with `-c filename.yml`
+//! - custom output file with `-o output.yml`
+//!
+//! ## Reporting
+//! TO BE DONE, perf report like output
+//! TO BE DONE, pipeable output of intersting data (could be used with gnuplot)
+
+
 // this program is about "macro benchmarking", in the sense that it will measure whole programm
 // execution and is able to compare run times.
 // Provide shell scripts that shall be measured!
@@ -66,7 +106,6 @@ fn main() {
                                 .help("Set the filename for the raw data output file. Defaults to results.yml")
                        )
                        // TODO add option for execution directory
-                       // TODO always output the raw data file
                        // TODO subcommand for reporting
                        .get_matches();
 
