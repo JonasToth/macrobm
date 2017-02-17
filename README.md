@@ -3,7 +3,6 @@
 
 ## Todo
 
-- raw data output
 - report subcommand -> read in raw data and give more statistical insight
 - history of data, allow raw data ouput into existing file -> merging many
   versions
