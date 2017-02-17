@@ -9,7 +9,7 @@ use term_painter::Attr::*;
 
 pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
 
-    println!("{:10} {:6} {:10} {:10} {:10}", Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
+    println!("{:10} {:8} {:7} {:7} {:20}", Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
                                Blue.bold().paint("Min"), Blue.bold().paint("Max"),
                                Blue.bold().paint("Name"));
 
@@ -20,7 +20,7 @@ pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
         let dev = absdev(times);
         let reldev = dev / avg * 100.;
 
-        println!("{:8.2} +-{:3.1}% {:8.2} {:8.2} {}", Bold.paint(avg), reldev, min, 
-                                                      max, Bold.paint(bm_name));
+        println!("{:8.2} {:3.1}% {:8.2} {:8.2} {}", Bold.paint(avg), reldev, min, 
+                                                    max, Bold.paint(bm_name));
     }
 }

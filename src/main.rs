@@ -60,8 +60,14 @@ fn main() {
                                 .takes_value(true)
                                 .help("Control how many thread shall be used to run the benchmarks")
                         )
+                       .arg(Arg::with_name("outfile")
+                                .short("o")
+                                .takes_value(true)
+                                .help("Set the filename for the raw data output file. Defaults to results.yml")
+                       )
                        // TODO add option for execution directory
-                       // TODO add option for output file .yml
+                       // TODO always output the raw data file
+                       // TODO subcommand for reporting
                        .get_matches();
 
     /// ---------------- Read configuration for the benchmarks
@@ -121,8 +127,6 @@ fn main() {
             let argument_list = config::yaml_args_to_stringlist(args);
 
             pool.execute(move || {
-                //messages::start_program(name_str);
-
                 let start_time = Instant::now();
                 let mut child = Command::new(&command_str)
                                         .args(&argument_list)
@@ -141,9 +145,7 @@ fn main() {
         }
     } 
 
-    println!("");
-
-    for _ in 0..scheduled {
+    for finished in 0..scheduled {
         let report = rx.recv().unwrap();
 
         // process report
@@ -153,10 +155,12 @@ fn main() {
         };
         
         // output information
-        messages::finished_program(report);
+        messages::finished_program(report, finished + 1, scheduled);
     }
 
     messages::finished();
     messages::intro_report();
     statistics::process_results(&bm_statistics);
+    let result_file = matches.value_of("outfile").unwrap_or("results.yml");
+    messages::write_result_file(&result_file, &bm_statistics);
 }
