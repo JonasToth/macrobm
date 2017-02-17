@@ -5,6 +5,7 @@
 use std::time::Duration;
 use std::process::ExitStatus;
 
+/// Data one benchmark run produces.
 pub struct Report {
     pub name: String,
     pub duration: f32,

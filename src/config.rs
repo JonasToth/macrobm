@@ -2,6 +2,8 @@
 
 use yaml_rust::Yaml;
 
+/// Parse a yaml-Vector to strings, to use this list of strings as argument to start the wanted
+/// process.
 pub fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String>
 {
     let mut result: Vec<String> = Vec::new();

@@ -15,23 +15,28 @@ use std::collections::BTreeMap;
 use execution_report::Report;
 
 
+/// Banner printed in every programm run.
 pub fn intro(worker: usize) {
     println!("Running {} {} threads", Blue.bold().paint("macro benchmarks"), worker);
 }
 
+/// Divider.
 pub fn intro_report() {
     println!("{}", Bold.paint("==========================================================================="));
 }
 
+/// Error message for an invalid configuration file for benchmarks.
 pub fn invalid_config_filename(fname: &str) {
     println!("{} could not open file {} as config.", Red.bold().paint("Failure"), Red.paint(fname));
 }
 
+/// Gets called when a command gets scheduled count-times. Information for user.
 pub fn scheduled_command(name: &str, count: i64) {
     println!("{} {} for {} runs", Blue.paint("Scheduling"), Bold.paint(name), 
                                   Bold.paint(count));
 }
 
+/// Gets called whenever one run of a benchmark is finished. Producess progressbar effect
 pub fn finished_program(report: Report, counter: i32, maximum: i32)
 {
     // err_code.success()
@@ -48,11 +53,14 @@ pub fn finished_program(report: Report, counter: i32, maximum: i32)
     io::stdout().flush().ok().expect("Could not flush stdout");
 }
 
+/// Gets called when all benchmarks were run.
 pub fn finished() {
     clean_line();
     println!("\r{}", Blue.bold().paint("Finished running benchmarks.!"));
 }
 
+/// Write the measured times as Yaml to the specified file. Casename is the key, value is a vector
+/// of floats.
 pub fn write_result_file(filename: &str, results: &HashMap<String, Vec<f32>>) {
     let mut case_vec = Vec::new();
 
@@ -74,7 +82,7 @@ pub fn write_result_file(filename: &str, results: &HashMap<String, Vec<f32>>) {
     {
         let mut emitter = YamlEmitter::new(&mut out_str);
         match emitter.dump(&yaml_data) {
-            Ok(t) => (),
+            Ok(_) => (),
             Err(e) => {println!("Error while creating the result file!"); panic!(e);},
         }
     }
@@ -83,6 +91,7 @@ pub fn write_result_file(filename: &str, results: &HashMap<String, Vec<f32>>) {
     file.write_all(out_str.as_bytes()).expect("Could not write results");
 }
 
+/// Clean the current line. Used for the progressbar effect.
 fn clean_line() {
     print!("\r                                                                                                                   ");
     io::stdout().flush().ok().expect("Could not flush stdout");

@@ -1,3 +1,4 @@
+/// Define values used to configure a benchmark run.
 pub struct RunConfig
 {
     name: String,

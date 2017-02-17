@@ -7,6 +7,8 @@ use term_painter::ToStyle;
 use term_painter::Color::*;
 use term_painter::Attr::*;
 
+/// Postprocess the results of all benchmark runs. Currently only prints a table with most
+/// interesting information.
 pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
 
     println!("{:10} {:8} {:7} {:7} {:20}", Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
