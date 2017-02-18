@@ -135,7 +135,7 @@ fn main() {
         // process report
         match bm_statistics.get_mut(&report.name) {
             Some(ref mut vec) => vec.push(report.duration),
-            None => ()
+            None => (),
         };
         // output information
         messages::finished_program(report, finished + 1, scheduled);
