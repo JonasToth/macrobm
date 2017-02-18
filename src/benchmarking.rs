@@ -11,13 +11,14 @@ use std::sync::mpsc;
 use std::time::Instant;
 
 pub fn do_benchmark(pool: &ThreadPool, name: &str, channel_trans: mpsc::Sender<Report>, config: &RunConfig) {
-    println!("{:?}", config);
     for _ in 0..config.count {
         // threads need own version of the data
         let name = name.to_string();
         let cmd = config.command.clone();
         let args = config.args.clone();
         let tx = channel_trans.clone();
+        let dir = config.directory.clone();
+        //let env = config.environment.clone();
 
         pool.execute(move || {
             let start_time = Instant::now();
@@ -25,6 +26,7 @@ pub fn do_benchmark(pool: &ThreadPool, name: &str, channel_trans: mpsc::Sender<R
                                       .args(&args)
                                       .stdout(Stdio::null())
                                       .stderr(Stdio::null())
+                                      .current_dir(&dir)
                                       .spawn()
                                       .expect("Program start failed!");
             let ecode = process.wait()

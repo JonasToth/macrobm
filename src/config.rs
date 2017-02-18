@@ -12,7 +12,6 @@ use messages;
 /// Parse the config file and create internal data structure used to spawn a benchmark.
 pub fn parse_config(file_name: &str) -> HashMap<String, RunConfig> {
     let yaml_doc = file_to_yaml(file_name);
-    println!("{:?}", yaml_doc);
     let doc = &yaml_doc[0];
     let mut cfg = HashMap::<String, RunConfig>::new();
 

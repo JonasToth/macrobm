@@ -13,9 +13,10 @@ use config::file_to_yaml;
 /// interesting information.
 pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
 
-    println!("{:10} {:8} {:7} {:7} {:20}", Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
-                               Blue.bold().paint("Min"), Blue.bold().paint("Max"),
-                               Blue.bold().paint("Name"));
+    println!("{:6} {:10} {:8} {:7} {:7} {:20}", 
+             Blue.bold().paint("Runs"), Blue.bold().paint("Avg"), 
+             Blue.bold().paint("Dev"), Blue.bold().paint("Min"), Blue.bold().paint("Max"),
+             Blue.bold().paint("Name"));
 
     for bm_name in run_statistic.keys() {
         let ref times = run_statistic.get(bm_name).unwrap();
@@ -24,8 +25,9 @@ pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
         let dev = absdev(times);
         let reldev = dev / avg * 100.;
 
-        println!("{:8.2} {:3.1}% {:8.2} {:8.2} {}", Bold.paint(avg), reldev, min, 
-                                                    max, Bold.paint(bm_name));
+        println!("{:6} {:8.2} {:3.1}% {:8.2} {:8.2} {}", times.len(), Bold.paint(avg), 
+                                                         reldev, min, max, 
+                                                         Bold.paint(bm_name));
     }
 }
 

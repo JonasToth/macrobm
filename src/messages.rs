@@ -44,13 +44,13 @@ pub fn scheduled_command(name: &str, count: i64) {
 pub fn finished_program(report: Report, counter: i64, maximum: i64)
 {
     // err_code.success()
-    let state_string = if report.ecode.success() { Green.bold().paint("Success") } 
-                       else { Red.bold().paint("Failure") };
+    let name = if report.ecode.success() { Green.bold().paint(report.name) } 
+                       else { Red.bold().paint(report.name) };
     let exec_time = report.duration;
 
     clean_line();
-    print!("\r{} {} after {:.2} {} {}{}{}{}{}",
-           state_string, Bold.paint(report.name), Bold.paint(exec_time),
+    print!("\r{} took {:.2} {} {}{}{}{}{}",
+           Bold.paint(name), Bold.paint(exec_time),
            Bold.paint("seconds"), Blue.paint("["), Blue.paint(counter), Blue.paint("/"),
            Blue.paint(maximum), Blue.paint("]"));
 

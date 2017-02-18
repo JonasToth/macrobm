@@ -101,7 +101,6 @@ fn main() {
                                      .help("Filename of the result file wanted to inspect. Defaults to results.yml")
                                  )
                        )
-                       // TODO add option for execution directory
                        .get_matches();
     
     // Handle subcommand for reporting.
