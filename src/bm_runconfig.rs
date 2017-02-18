@@ -1,12 +1,13 @@
 /// Define values used to configure a benchmark run.
 pub struct RunConfig
 {
-    name: String,
-    description: String,
-    runcount: i64
+    pub name: String,
+    pub description: String,
+    pub count: i64,
 
-    command: String,
-    directory: String, // optional
-    environment: String, // optional
+    pub command: String,
+    pub args: Vec<String>, // empty vector if no args were configured
+    pub directory: String, // optional
+    pub environment: Vec<String>, // optional
 
 }

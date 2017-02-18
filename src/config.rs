@@ -1,10 +1,72 @@
 /// We parse configs cause we are so nice
 
-use yaml_rust::Yaml;
+use yaml_rust::{Yaml,YamlLoader};
+
+use bm_runconfig::RunConfig;
+
+use std::fs::File;
+use std::io::Read;
+use std::collections::HashMap;
+use messages;
+
+/// Parse the config file and create internal data structure used to spawn a benchmark.
+pub fn parse_config(file_name: &str) -> HashMap<String, RunConfig> {
+    let yaml_doc = file_to_yaml(file_name);
+    let doc = &yaml_doc[0];
+    let mut cfg = HashMap::<String, RunConfig>::new();
+    
+    for bm in doc["cases"].as_vec().unwrap() {
+        let key = bm["name"].as_str().unwrap_or(
+                bm["command"].as_str().unwrap()
+            ).to_string();
+
+        let empty_args = Vec::<Yaml>::new();
+        let args = match bm["args"].as_vec() {
+            Some(v) => v,
+            None    => &empty_args,
+        };
+        let args = yaml_args_to_stringlist(args);
+
+        let cfg_struct = RunConfig{
+            name: key.clone(),
+            description: bm["description"].as_str().unwrap_or("").to_string(),
+            count: bm["count"].as_i64().unwrap_or(1),
+            
+            command: bm["command"].as_str().unwrap().to_string(),
+            args: args,
+            directory: "".to_string(),
+            environment: Vec::<String>::new(),
+        };
+
+        cfg.insert(key, cfg_struct);
+    }
+
+    cfg
+}
+
+/// Read in a file and try to generate yml out of it. Will panic if yaml cant be loaded.
+fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
+    // open the file
+    let mut config_file = match File::open(file_name) {
+        Ok(file) => file,
+        Err(e)   => { messages::invalid_config_filename(file_name);
+                      panic!("{}", e); }
+    };
+
+    let mut config_file_content = String::new();
+    config_file.read_to_string(&mut config_file_content).unwrap();
+    let yaml = match YamlLoader::load_from_str(&config_file_content) {
+        Ok(vec)   => vec,
+        Err(e)    => { messages::invalid_yaml(file_name);
+                       panic!(e); },
+    };
+
+    yaml
+}
 
 /// Parse a yaml-Vector to strings, to use this list of strings as argument to start the wanted
 /// process.
-pub fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String>
+fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String>
 {
     let mut result: Vec<String> = Vec::new();
 

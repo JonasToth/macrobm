@@ -7,9 +7,7 @@
 //!
 //! # Example
 //! ## benchmarks.yml - default name for configuration files
-//! cases:
-//!    - name: "computation"                                    # necessary? maybe command will be substituted
-//!      command: "/bin/sleep"                                  # needed
+//! cases: - name: "computation"                                    # necessary? maybe command will be substituted command: "/bin/sleep"                                  # needed
 //!      args: ["1",]                                           # arguments passed to the command
 //!      environment: ["LIST=2", "BLA=2"]                       # optional
 //!      directory: "/home/user/bin/project/executiondirectory" # default to current dir
@@ -54,11 +52,8 @@ extern crate term_painter;
 
 // yaml loading for configuration and result output
 extern crate yaml_rust;
-use yaml_rust::{YamlLoader,Yaml};
+//use yaml_rust::{YamlLoader,Yaml};
 
-// time measurement and stuff
-use std::fs;
-use std::io::Read;
 
 // subprocesses to call the command we want to measure
 use std::process::{Command, Stdio};
@@ -70,12 +65,15 @@ use std::sync::mpsc::channel;
 use std::time::Instant;
 use std::collections::HashMap;
 
+// link with statistics library
 extern crate stat;
 
 // custom functions written by me, for code clearity
 mod messages;
 // parse the yaml configuration files and build the internal data structures
 mod config;
+// configuration structure for single run
+mod bm_runconfig;
 // results of the benchmarks
 mod execution_report;
 use execution_report::Report;
@@ -109,97 +107,69 @@ fn main() {
                        // TODO subcommand for reporting
                        .get_matches();
 
-    /// ---------------- Read configuration for the benchmarks
+    // ---------------- Read configuration for the benchmarks
     let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
-    let mut config_file = match fs::File::open(cfg_file_name) {
-        Ok(file) => file,
-        Err(e)   => { messages::invalid_config_filename(cfg_file_name);
-                      panic!("{}", e); }
-    };
-    let mut config_file_content = String::new();
-    config_file.read_to_string(&mut config_file_content).unwrap();
-    let bm = YamlLoader::load_from_str(&config_file_content).unwrap();
+    let bm_cfg = config::parse_config(cfg_file_name);
 
-    /// --------------- Build the List of Commands necessary to start
-    let bms = &bm[0];
-
-
-    /// --------------- Create place to save all results of the benchmarking
+    // --------------- Create place to save all results of the benchmarking
     let mut bm_statistics = HashMap::new();
 
-    /// --------------- Present first view
-
-    /// --------------- Configure multithreading for the benchmarks
-    /// --------------- Setup communication structure for timing results
+    // --------------- Configure multithreading for the benchmarks
     let n_workers = matches.value_of("jobs").unwrap_or("1");
     let n_workers = n_workers.parse::<usize>().unwrap();
     let pool = ThreadPool::new(n_workers);
     let (tx, rx) = channel();
 
+    // --------------- Banner Message
     messages::intro(n_workers);
 
+    // --------------- Schedule all wanted commands n times
     let mut scheduled = 0;
+    for (name, config) in &bm_cfg {
+        messages::scheduled_command(&name, config.count);
+        bm_statistics.insert(name.clone(), Vec::<f32>::new());
 
-    for benchmark in bms["cases"].as_vec().unwrap() {
-        let command_str = benchmark["command"].as_str().unwrap().to_string();
-        let runcount = benchmark["count"].as_i64().unwrap_or(1);
-        // either there is a name given, or the command will be used
-        let name_str = benchmark["name"].as_str().unwrap_or(
-                            benchmark["command"].as_str().unwrap()
-                       ).to_string();
-
-        messages::scheduled_command(&name_str, runcount);
-
-        // enable statistic collection for that command
-        bm_statistics.insert(name_str.clone(), Vec::<f32>::new());
-
-        for _ in 0..runcount {
+        for _ in 0..config.count {
+            // threads need own version of the data
             let tx = tx.clone();
-            let name_str = name_str.clone();
-            let command_str = command_str.clone();
-
-            let empty_args = Vec::<Yaml>::new();
-            let args = match benchmark["args"].as_vec() {
-                Some(v) => v,
-                None    => &empty_args,
-            };
-            let argument_list = config::yaml_args_to_stringlist(args);
+            let name = name.clone();
+            let cmd = config.command.clone();
+            let args = config.args.clone();
 
             pool.execute(move || {
                 let start_time = Instant::now();
-                let mut child = Command::new(&command_str)
-                                        .args(&argument_list)
-                                        .stdout(Stdio::null())
-                                        .stderr(Stdio::null())
-                                        .spawn()
-                                        .expect("program start failed");
-                let ecode = child.wait()
-                                 .expect("failed to wait on programm");
-
-                /// build execution report
+                let mut process = Command::new(&cmd)
+                                          .args(&args)
+                                          .stdout(Stdio::null())
+                                          .stderr(Stdio::null())
+                                          .spawn()
+                                          .expect("Program start failed!");
+                let ecode = process.wait()
+                                   .expect("Failed to wait on program!");
                 let execution_time = start_time.elapsed();
-                tx.send(Report::new(name_str.clone(), execution_time, ecode)).unwrap();
+                tx.send(Report::new(name, execution_time, ecode)).unwrap();
             });
+
             scheduled+= 1;
         }
-    } 
+    }
 
+    // ------------- Wait for all bm to finish and notice the user about the state of the program.
     for finished in 0..scheduled {
         let report = rx.recv().unwrap();
-
         // process report
         match bm_statistics.get_mut(&report.name) {
             Some(ref mut vec) => vec.push(report.duration),
             None => ()
         };
-        
         // output information
         messages::finished_program(report, finished + 1, scheduled);
     }
-
     messages::finished();
+
     messages::intro_report();
     statistics::process_results(&bm_statistics);
+
     let result_file = matches.value_of("outfile").unwrap_or("results.yml");
     messages::write_result_file(&result_file, &bm_statistics);
 }

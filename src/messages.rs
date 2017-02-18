@@ -30,6 +30,10 @@ pub fn invalid_config_filename(fname: &str) {
     println!("{} could not open file {} as config.", Red.bold().paint("Failure"), Red.paint(fname));
 }
 
+pub fn invalid_yaml(fname: &str) {
+    println!("Error while parsing yml file {}!", Red.paint(fname));
+}
+
 /// Gets called when a command gets scheduled count-times. Information for user.
 pub fn scheduled_command(name: &str, count: i64) {
     println!("{} {} for {} runs", Blue.paint("Scheduling"), Bold.paint(name), 
