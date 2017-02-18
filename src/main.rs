@@ -55,14 +55,10 @@ extern crate yaml_rust;
 //use yaml_rust::{YamlLoader,Yaml};
 
 
-// subprocesses to call the command we want to measure
-use std::process::{Command, Stdio};
-
 // time measurement and and threading
 extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
-use std::time::Instant;
 use std::collections::HashMap;
 
 // link with statistics library
@@ -74,9 +70,10 @@ mod messages;
 mod config;
 // configuration structure for single run
 mod bm_runconfig;
+// functions to do benchmarking
+mod benchmarking;
 // results of the benchmarks
 mod execution_report;
-use execution_report::Report;
 // statistics for the durations
 mod statistics;
 
@@ -128,30 +125,8 @@ fn main() {
     for (name, config) in &bm_cfg {
         messages::scheduled_command(&name, config.count);
         bm_statistics.insert(name.clone(), Vec::<f32>::new());
-
-        for _ in 0..config.count {
-            // threads need own version of the data
-            let tx = tx.clone();
-            let name = name.clone();
-            let cmd = config.command.clone();
-            let args = config.args.clone();
-
-            pool.execute(move || {
-                let start_time = Instant::now();
-                let mut process = Command::new(&cmd)
-                                          .args(&args)
-                                          .stdout(Stdio::null())
-                                          .stderr(Stdio::null())
-                                          .spawn()
-                                          .expect("Program start failed!");
-                let ecode = process.wait()
-                                   .expect("Failed to wait on program!");
-                let execution_time = start_time.elapsed();
-                tx.send(Report::new(name, execution_time, ecode)).unwrap();
-            });
-
-            scheduled+= 1;
-        }
+        benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
+        scheduled+= config.count;
     }
 
     // ------------- Wait for all bm to finish and notice the user about the state of the program.

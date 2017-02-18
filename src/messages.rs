@@ -41,7 +41,7 @@ pub fn scheduled_command(name: &str, count: i64) {
 }
 
 /// Gets called whenever one run of a benchmark is finished. Producess progressbar effect
-pub fn finished_program(report: Report, counter: i32, maximum: i32)
+pub fn finished_program(report: Report, counter: i64, maximum: i64)
 {
     // err_code.success()
     let state_string = if report.ecode.success() { Green.bold().paint("Success") } 
