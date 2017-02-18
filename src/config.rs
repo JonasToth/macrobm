@@ -45,7 +45,7 @@ pub fn parse_config(file_name: &str) -> HashMap<String, RunConfig> {
 }
 
 /// Read in a file and try to generate yml out of it. Will panic if yaml cant be loaded.
-fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
+pub fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
     // open the file
     let mut config_file = match File::open(file_name) {
         Ok(file) => file,

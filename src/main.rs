@@ -46,7 +46,7 @@
 
 // command line parser
 extern crate clap;
-use clap::{Arg, App};
+use clap::{Arg, App, SubCommand};
 
 extern crate term_painter;
 
@@ -91,60 +91,78 @@ fn main() {
                             .help("Configuration for the macro benchmarks")
                        )
                        .arg(Arg::with_name("jobs")
-                                .short("j")
-                                .takes_value(true)
-                                .help("Control how many thread shall be used to run the benchmarks")
+                            .short("j")
+                            .takes_value(true)
+                            .help("Control how many thread shall be used to run the benchmarks")
                         )
                        .arg(Arg::with_name("outfile")
-                                .short("o")
-                                .takes_value(true)
-                                .help("Set the filename for the raw data output file. Defaults to results.yml")
+                            .short("o")
+                            .takes_value(true)
+                            .help("Set the filename for the raw data output file. Defaults to results.yml")
+                       )
+                       .subcommand(
+                            SubCommand::with_name("report")
+                                .about("Print statistics of a previously run benchmark")
+                                .arg(Arg::with_name("input")
+                                     .short("i")
+                                     .takes_value(true)
+                                     .help("Filename of the result file wanted to inspect. Defaults to results.yml")
+                                 )
                        )
                        // TODO add option for execution directory
                        // TODO subcommand for reporting
                        .get_matches();
+    
+    if let Some(sub_report) = matches.subcommand_matches("report") {
+        let result_file = sub_report.value_of("input").unwrap_or("results.yml");
+        let report_data = statistics::read_result_from_file(result_file);
 
-    // ---------------- Read configuration for the benchmarks
-    let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
-    let bm_cfg = config::parse_config(cfg_file_name);
-
-    // --------------- Create place to save all results of the benchmarking
-    let mut bm_statistics = HashMap::new();
-
-    // --------------- Configure multithreading for the benchmarks
-    let n_workers = matches.value_of("jobs").unwrap_or("1");
-    let n_workers = n_workers.parse::<usize>().unwrap();
-    let pool = ThreadPool::new(n_workers);
-    let (tx, rx) = channel();
-
-    // --------------- Banner Message
-    messages::intro(n_workers);
-
-    // --------------- Schedule all wanted commands n times
-    let mut scheduled = 0;
-    for (name, config) in &bm_cfg {
-        messages::scheduled_command(&name, config.count);
-        bm_statistics.insert(name.clone(), Vec::<f32>::new());
-        benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
-        scheduled+= config.count;
+        messages::intro_report();
+        statistics::process_results(&report_data);
     }
+    else {
+        // ---------------- Read configuration for the benchmarks
+        let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
+        let bm_cfg = config::parse_config(cfg_file_name);
 
-    // ------------- Wait for all bm to finish and notice the user about the state of the program.
-    for finished in 0..scheduled {
-        let report = rx.recv().unwrap();
-        // process report
-        match bm_statistics.get_mut(&report.name) {
-            Some(ref mut vec) => vec.push(report.duration),
-            None => (),
-        };
-        // output information
-        messages::finished_program(report, finished + 1, scheduled);
+        // --------------- Create place to save all results of the benchmarking
+        let mut bm_statistics = HashMap::new();
+
+        // --------------- Configure multithreading for the benchmarks
+        let n_workers = matches.value_of("jobs").unwrap_or("1");
+        let n_workers = n_workers.parse::<usize>().unwrap();
+        let pool = ThreadPool::new(n_workers);
+        let (tx, rx) = channel();
+
+        // --------------- Banner Message
+        messages::intro(n_workers);
+
+        // --------------- Schedule all wanted commands n times
+        let mut scheduled = 0;
+        for (name, config) in &bm_cfg {
+            messages::scheduled_command(&name, config.count);
+            bm_statistics.insert(name.clone(), Vec::<f32>::new());
+            benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
+            scheduled+= config.count;
+        }
+
+        // ------------- Wait for all bm to finish and notice the user about the state of the program.
+        for finished in 0..scheduled {
+            let report = rx.recv().unwrap();
+            // process report
+            match bm_statistics.get_mut(&report.name) {
+                Some(ref mut vec) => vec.push(report.duration),
+                None => (),
+            };
+            // output information
+            messages::finished_program(report, finished + 1, scheduled);
+        }
+        messages::finished();
+
+        messages::intro_report();
+        statistics::process_results(&bm_statistics);
+
+        let result_file = matches.value_of("outfile").unwrap_or("results.yml");
+        messages::write_result_file(&result_file, &bm_statistics);
     }
-    messages::finished();
-
-    messages::intro_report();
-    statistics::process_results(&bm_statistics);
-
-    let result_file = matches.value_of("outfile").unwrap_or("results.yml");
-    messages::write_result_file(&result_file, &bm_statistics);
 }
