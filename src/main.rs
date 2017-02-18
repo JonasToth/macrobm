@@ -36,14 +36,6 @@
 //! TO BE DONE, pipeable output of intersting data (could be used with gnuplot)
 
 
-// this program is about "macro benchmarking", in the sense that it will measure whole programm
-// execution and is able to compare run times.
-// Provide shell scripts that shall be measured!
-
-// error handling
-//use std::error::Error;
-//use std::default::Default;
-
 // command line parser
 extern crate clap;
 use clap::{Arg, App, SubCommand};
@@ -52,13 +44,13 @@ extern crate term_painter;
 
 // yaml loading for configuration and result output
 extern crate yaml_rust;
-//use yaml_rust::{YamlLoader,Yaml};
 
-
-// time measurement and and threading
+// threading
 extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
+
+// save results in hashmap
 use std::collections::HashMap;
 
 // link with statistics library
@@ -110,9 +102,9 @@ fn main() {
                                  )
                        )
                        // TODO add option for execution directory
-                       // TODO subcommand for reporting
                        .get_matches();
     
+    // Handle subcommand for reporting.
     if let Some(sub_report) = matches.subcommand_matches("report") {
         let result_file = sub_report.value_of("input").unwrap_or("results.yml");
         let report_data = statistics::read_result_from_file(result_file);
@@ -120,9 +112,11 @@ fn main() {
         messages::intro_report();
         statistics::process_results(&report_data);
     }
+    // Default usage, run benchmarks.
     else {
         // ---------------- Read configuration for the benchmarks
         let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
+        // TODO insert global defaults from command line
         let bm_cfg = config::parse_config(cfg_file_name);
 
         // --------------- Create place to save all results of the benchmarking

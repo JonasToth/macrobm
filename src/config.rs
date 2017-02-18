@@ -12,30 +12,44 @@ use messages;
 /// Parse the config file and create internal data structure used to spawn a benchmark.
 pub fn parse_config(file_name: &str) -> HashMap<String, RunConfig> {
     let yaml_doc = file_to_yaml(file_name);
+    println!("{:?}", yaml_doc);
     let doc = &yaml_doc[0];
     let mut cfg = HashMap::<String, RunConfig>::new();
+
+    // default values, that can be set global for all cases
+    let default_count = doc["count"].as_i64().unwrap_or(1);
+    let default_dir   = doc["directory"].as_str().unwrap_or(".");
+    let default_args  = match doc["args"].as_vec() {
+        Some(v) => yaml_args_to_stringlist(v),
+        None    => Vec::<String>::new(),
+    };
+    let default_env   = match doc["environment"].as_vec() {
+        Some(v) => yaml_stringarray_to_native(v),
+        None    => vec!["".to_string()],
+    };
+
     
     for bm in doc["cases"].as_vec().unwrap() {
-        let key = bm["name"].as_str().unwrap_or(
-                bm["command"].as_str().unwrap()
-            ).to_string();
-
-        let empty_args = Vec::<Yaml>::new();
+        let cmd_slice = bm["command"].as_str().unwrap();
+        let key = bm["name"].as_str().unwrap_or(cmd_slice).to_string();
         let args = match bm["args"].as_vec() {
-            Some(v) => v,
-            None    => &empty_args,
+            Some(v) => yaml_args_to_stringlist(v),
+            None    => default_args.clone(),
         };
-        let args = yaml_args_to_stringlist(args);
 
+        // fill configuration with values and/or default values
         let cfg_struct = RunConfig{
             name: key.clone(),
             description: bm["description"].as_str().unwrap_or("").to_string(),
-            count: bm["count"].as_i64().unwrap_or(1),
+            count: bm["count"].as_i64().unwrap_or(default_count),
             
-            command: bm["command"].as_str().unwrap().to_string(),
+            command: cmd_slice.to_string(),
             args: args,
-            directory: "".to_string(),
-            environment: Vec::<String>::new(),
+            directory: bm["directory"].as_str().unwrap_or(default_dir).to_string(),
+            environment: match bm["environment"].as_vec() {
+                Some(v) => yaml_stringarray_to_native(v),
+                None    => default_env.clone(),
+            }
         };
 
         cfg.insert(key, cfg_struct);
@@ -80,5 +94,18 @@ fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String>
         }
     }
 
+    result
+}
+
+/// The same as yaml_args_to_stringlist, but accepts only Yaml::String.
+fn yaml_stringarray_to_native(strings: &Vec<Yaml>) -> Vec<String> {
+    let mut result = Vec::<String>::new();
+
+    for s in strings {
+        match s {
+            &Yaml::String(ref str) => result.push(str.clone()),
+            _                      => panic!("Expected a yaml-String. Provide correct data!"),
+        }
+    }
     result
 }

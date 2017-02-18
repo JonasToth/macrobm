@@ -1,3 +1,4 @@
+count: 15
 cases:
     - name: "hReactor_uc"                                    # necessary? maybe command will be substituted
       command: "/bin/sleep"                                  # needed
@@ -7,7 +8,6 @@ cases:
       count: 5                                              
 
     - command: "produce.sh"
-      count: 5
 
       #- name: "Fuchs"
       #command: "/bin/sleep"

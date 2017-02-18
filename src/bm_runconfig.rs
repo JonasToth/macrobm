@@ -1,4 +1,5 @@
 /// Define values used to configure a benchmark run.
+#[derive(Debug)]
 pub struct RunConfig
 {
     pub name: String,
