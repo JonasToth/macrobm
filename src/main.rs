@@ -60,8 +60,6 @@ extern crate stat;
 mod messages;
 // parse the yaml configuration files and build the internal data structures
 mod config;
-// configuration structure for single run
-mod bm_runconfig;
 // functions to do benchmarking
 mod benchmarking;
 // statistics for the durations

@@ -9,7 +9,23 @@ use threadpool::ThreadPool;
 use std::sync::mpsc;
 use std::time::{Instant, Duration};
 
+/// Define values used to configure a benchmark run.
+#[derive(Debug)]
+pub struct RunConfig
+{
+    pub name: String,
+    pub description: String,
+    pub count: i64,
+
+    pub command: String,
+    pub args: Vec<String>, // empty vector if no args were configured
+    pub directory: String, // optional
+    pub environment: Vec<String>, // optional
+
+}
+
 /// Data one benchmark run produces.
+#[derive(Debug)]
 pub struct Report {
     pub name: String,
     pub duration: f32,
@@ -26,6 +42,9 @@ impl Report {
         }
     }
 }
+
+/// Start all benchmarks in a threadpool and configure a channel to receive a Report for every
+/// finished run.
 pub fn do_benchmark(pool: &ThreadPool, name: &str, channel_trans: mpsc::Sender<Report>, config: &RunConfig) {
     for _ in 0..config.count {
         // threads need own version of the data
