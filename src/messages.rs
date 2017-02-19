@@ -9,7 +9,6 @@ use yaml_rust::{Yaml, YamlEmitter};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::collections::HashMap;
 use std::collections::BTreeMap;
 
 use execution_report::Report;
@@ -65,7 +64,7 @@ pub fn finished() {
 
 /// Write the measured times as Yaml to the specified file. Casename is the key, value is a vector
 /// of floats.
-pub fn write_result_file(filename: &str, results: &HashMap<String, Vec<f32>>) {
+pub fn write_result_file(filename: &str, results: &BTreeMap<String, Vec<f32>>) {
     let mut case_vec = Vec::new();
 
     for case in results.keys() {

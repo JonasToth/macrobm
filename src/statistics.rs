@@ -2,7 +2,7 @@
 
 extern crate stat;
 use stat::{mean, minmax, absdev};
-use std::collections::{HashMap};
+use std::collections::{BTreeMap};
 use term_painter::ToStyle;
 use term_painter::Color::*;
 use term_painter::Attr::*;
@@ -11,7 +11,7 @@ use config::file_to_yaml;
 
 /// Postprocess the results of all benchmark runs. Currently only prints a table with most
 /// interesting information.
-pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
+pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>) {
 
     println!("{:6} {:10} {:8} {:7} {:7} {:20}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Avg"), 
@@ -33,10 +33,10 @@ pub fn process_results(run_statistic: &HashMap<String, Vec<f32>>) {
 
 /// Read in a result file and return all execution times mapped to their command name.
 /// Panics if the file is not existing or the yaml cant be loaded.
-pub fn read_result_from_file(file_name: &str) -> HashMap<String, Vec<f32>> {
+pub fn read_result_from_file(file_name: &str) -> BTreeMap<String, Vec<f32>> {
     let yml = file_to_yaml(file_name);
     let yml = &yml[0];
-    let mut result = HashMap::new();
+    let mut result = BTreeMap::new();
 
     for single_result in yml.as_vec().unwrap() {
         let single_result = single_result.as_hash().unwrap();

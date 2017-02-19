@@ -51,7 +51,7 @@ use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
 
 // save results in hashmap
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 // link with statistics library
 extern crate stat;
@@ -119,7 +119,7 @@ fn main() {
         let bm_cfg = config::parse_config(cfg_file_name);
 
         // --------------- Create place to save all results of the benchmarking
-        let mut bm_statistics = HashMap::new();
+        let mut bm_statistics = BTreeMap::new();
 
         // --------------- Configure multithreading for the benchmarks
         let n_workers = matches.value_of("jobs").unwrap_or("1");

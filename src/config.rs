@@ -6,14 +6,14 @@ use bm_runconfig::RunConfig;
 
 use std::fs::File;
 use std::io::Read;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use messages;
 
 /// Parse the config file and create internal data structure used to spawn a benchmark.
-pub fn parse_config(file_name: &str) -> HashMap<String, RunConfig> {
+pub fn parse_config(file_name: &str) -> BTreeMap<String, RunConfig> {
     let yaml_doc = file_to_yaml(file_name);
     let doc = &yaml_doc[0];
-    let mut cfg = HashMap::<String, RunConfig>::new();
+    let mut cfg = BTreeMap::<String, RunConfig>::new();
 
     // default values, that can be set global for all cases
     let default_count = doc["count"].as_i64().unwrap_or(1);
