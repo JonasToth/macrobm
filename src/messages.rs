@@ -22,7 +22,6 @@ pub fn intro(worker: usize) {
 
 /// Output run statistics either collected or read in from a result file.
 pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
-    intro_report();
     println!("{:^6} {:^10} {:^10} {:^7} {:^10} {:^20}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
              Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
@@ -68,9 +67,9 @@ pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTre
 }
 
 pub fn intro_diff(gt_filename: &str, res_filename: &str) {
-    print!("{:^48}", Blue.bold().paint(gt_filename));
+    print!("{:^47}", Blue.bold().paint(gt_filename));
     print!("{:22}", Blue.bold().paint("====================="));
-    println!("{:^48}", Blue.bold().paint(res_filename));
+    println!("{:^47}", Blue.bold().paint(res_filename));
 
     println!("{:^6} {:^10} {:^10} {:^7} {:^10} {:^20} {:^10} {:^7} {:^10} {:^10} {:^6}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
@@ -78,11 +77,6 @@ pub fn intro_diff(gt_filename: &str, res_filename: &str) {
              Blue.bold().paint("Name"),
              Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Min"),
              Blue.bold().paint("Max"), Blue.bold().paint("Runs"));
-}
-
-/// Divider.
-fn intro_report() {
-    println!("{}", Bold.paint("==========================================================================="));
 }
 
 /// Error message for an invalid configuration file for benchmarks.
