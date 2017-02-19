@@ -1,10 +1,10 @@
 [package]
 name = "macrobm"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Jonas Toth <jonas.toth@gmail.com>"]
 
 [dependencies]
-clap = "2.19"
+clap = "2"
 term-painter = "0.2"
 yaml-rust = "*"
 
