@@ -101,6 +101,10 @@ fn main() {
                                      .help("Filename of the result file wanted to inspect. Defaults to results.yml")
                                  )
                        )
+                       .subcommand(
+                           SubCommand::with_name("diff")
+                                .about("Compare two different result files with same benchmarks and show differences")
+                       )
                        .get_matches();
     
     // Handle subcommand for reporting.
