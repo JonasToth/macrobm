@@ -7,6 +7,7 @@ use std::collections::{BTreeMap};
 use config::file_to_yaml;
 
 
+#[derive(Debug)]
 pub struct BMStatistics {
     /// average runtime of the benchmark
     pub avg: f64,

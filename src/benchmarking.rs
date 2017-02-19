@@ -2,7 +2,7 @@
 ///
 
 use bm_runconfig::RunConfig;
-use execution_report::Report;
+use report::Report;
 
 // subprocesses to call the command we want to measure
 use std::process::{Command, Stdio};

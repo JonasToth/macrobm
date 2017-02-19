@@ -11,7 +11,7 @@ use std::io;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
 
-use execution_report::Report;
+use report::Report;
 use statistics::BMStatistics;
 
 
@@ -20,7 +20,7 @@ pub fn intro(worker: usize) {
     println!("Running {} {} threads", Blue.bold().paint("macro benchmarks"), worker);
 }
 
-pub fn report_statistics(stats: BTreeMap<String, BMStatistics>) {
+pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
     println!("{:6} {:10} {:8} {:7} {:7} {:20}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Avg"), 
              Blue.bold().paint("Dev"), Blue.bold().paint("Min"), Blue.bold().paint("Max"),

@@ -65,7 +65,7 @@ mod bm_runconfig;
 // functions to do benchmarking
 mod benchmarking;
 // results of the benchmarks
-mod execution_report;
+mod report;
 // statistics for the durations
 mod statistics;
 
@@ -113,7 +113,8 @@ fn main() {
         let report_data = statistics::read_result_from_file(result_file);
 
         messages::intro_report();
-        statistics::process_results(&report_data);
+        let stats = statistics::process_results(&report_data);
+        messages::report_statistics(&stats);
     }
     // Default usage, run benchmarks.
     else {
@@ -157,7 +158,8 @@ fn main() {
         messages::finished();
 
         messages::intro_report();
-        statistics::process_results(&bm_statistics);
+        let stats = statistics::process_results(&bm_statistics);
+        messages::report_statistics(&stats);
 
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");
         messages::write_result_file(&result_file, &bm_statistics);
