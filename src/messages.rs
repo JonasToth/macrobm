@@ -57,12 +57,12 @@ pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTre
                                else { (Red.bold().paint(gt.avg), Green.bold().paint(re.avg)) };
 
         let reldev = 100. * gt.dev / gt.avg;
-        print!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^20}", gt.count, gt_min, gt_avg, 
-                                                               reldev, gt_max, 
-                                                               Bold.paint(bm_name));
+        print!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^20}", gt.count, gt_min, gt_max, 
+                                                                     reldev, gt_avg, 
+                                                                     Bold.paint(bm_name));
         let reldev = 100. * re.dev / re.avg;
-        print!("{:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^6}", re_min, re_avg, reldev, 
-                                                         re_max, re.count);
+        print!("{:^10.2} +-{:^4.1}% {:^10.2} {:^10.2} {:^6}", re_avg, reldev, re_min,
+                                                              re_max, re.count);
         println!("");
     }
 }
@@ -74,9 +74,9 @@ pub fn intro_diff(gt_filename: &str, res_filename: &str) {
 
     println!("{:^6} {:^10} {:^10} {:^8} {:^10} {:^20} {:^10} {:^10} {:^8} {:^10} {:^6}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
-             Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
+             Blue.bold().paint("Max"), Blue.bold().paint("Dev"), Blue.bold().paint("Avg"),
              Blue.bold().paint("Name"),
-             Blue.bold().paint("Min"), Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
+             Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Min"),
              Blue.bold().paint("Max"), Blue.bold().paint("Runs"));
 }
 
