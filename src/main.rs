@@ -64,8 +64,6 @@ mod config;
 mod bm_runconfig;
 // functions to do benchmarking
 mod benchmarking;
-// results of the benchmarks
-mod report;
 // statistics for the durations
 mod statistics;
 

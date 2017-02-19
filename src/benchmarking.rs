@@ -2,14 +2,30 @@
 ///
 
 use bm_runconfig::RunConfig;
-use report::Report;
 
 // subprocesses to call the command we want to measure
-use std::process::{Command, Stdio};
+use std::process::{Command, Stdio, ExitStatus};
 use threadpool::ThreadPool;
 use std::sync::mpsc;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 
+/// Data one benchmark run produces.
+pub struct Report {
+    pub name: String,
+    pub duration: f32,
+    pub ecode: ExitStatus,
+}
+
+impl Report {
+    pub fn new(name: String, dur: Duration, code: ExitStatus) -> Report {
+        let seconds: f32 = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1000000000.;
+        Report {
+            name: name,
+            duration: seconds,
+            ecode: code,
+        }
+    }
+}
 pub fn do_benchmark(pool: &ThreadPool, name: &str, channel_trans: mpsc::Sender<Report>, config: &RunConfig) {
     for _ in 0..config.count {
         // threads need own version of the data

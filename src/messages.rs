@@ -11,7 +11,7 @@ use std::io;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
 
-use report::Report;
+use benchmarking::Report;
 use statistics::BMStatistics;
 
 
