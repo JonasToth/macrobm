@@ -12,7 +12,8 @@ use std::io::prelude::*;
 use std::collections::BTreeMap;
 
 use benchmarking::Report;
-use statistics::BMStatistics;
+use statistics;
+use statistics::{BMStatistics, Comparison};
 
 
 /// Banner printed in every programm run.
@@ -37,29 +38,39 @@ pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
 
 /// Print out how two runs differ. With nice coloring where changes are.
 pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTreeMap<String, BMStatistics>) {
-    // intro is done in main function
-    
-    for bm_name in gt_stats.keys() {
-        let gt = gt_stats.get(bm_name).unwrap();
-        let re = match result_stat.get(bm_name) {
+    let comparison = statistics::compare_runs(gt_stats, result_stat, 2.);
+
+    for (bm_name, cmp) in comparison {
+        let gt = gt_stats.get(&bm_name).unwrap();
+        let re = match result_stat.get(&bm_name) {
             Some(stats) => stats,
             None => continue,
         };
 
         // color the output depending which of the metric is better for which data set
-        let (gt_min, re_min) = if gt.min <= re.min { (Green.paint(gt.min), Red.paint(re.min)) } 
-                               else { (Red.paint(gt.min), Green.paint(re.min)) };
+        let (gt_min, re_min) = match cmp.min {
+            Comparison::OneIsFaster => (Green.paint(gt.min), Red.paint(re.min)),
+            Comparison::TwoIsFaster => (Red.paint(gt.min), Green.paint(re.min)),
+            Comparison::Equal       => (Plain.paint(gt.min), Plain.paint(re.min)),
+        };
         
-        let (gt_max, re_max) = if gt.max <= re.max { (Green.paint(gt.max), Red.paint(re.max)) }
-                               else { (Red.paint(gt.max), Green.paint(re.max)) };
-        let (gt_avg, re_avg) = if gt.avg <= re.avg { (Green.bold().paint(gt.avg), Red.bold().paint(re.avg)) }
-                               else { (Red.bold().paint(gt.avg), Green.bold().paint(re.avg)) };
+        let (gt_max, re_max) = match cmp.max { 
+            Comparison::OneIsFaster => (Green.paint(gt.max), Red.paint(re.max)),
+            Comparison::TwoIsFaster => (Red.paint(gt.max), Green.paint(re.max)),
+            Comparison::Equal       => (Plain.paint(gt.max), Plain.paint(re.max)),
+        };
 
-        let reldev = 100. * gt.dev / gt.avg;
+        let (gt_avg, re_avg) = match cmp.avg { 
+            Comparison::OneIsFaster => (Green.bold().paint(gt.avg), Red.bold().paint(re.avg)),
+            Comparison::TwoIsFaster => (Red.bold().paint(gt.avg), Green.bold().paint(re.avg)),
+            Comparison::Equal       => (Bold.paint(gt.avg), Bold.paint(re.avg)),
+        };
+
+        let reldev = statistics::calc_relative_variance(gt);
         print!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^20} ", gt.count, gt_min, gt_max, 
                                                                       reldev, gt_avg, 
                                                                       Bold.paint(bm_name));
-        let reldev = 100. * re.dev / re.avg;
+        let reldev = statistics::calc_relative_variance(re);
         print!("{:^10.2} +-{:^4.1}% {:^10.2} {:^10.2} {:^6}", re_avg, reldev, re_min,
                                                               re_max, re.count);
         println!("");

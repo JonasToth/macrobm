@@ -21,6 +21,19 @@ pub struct BMStatistics {
     pub count: usize,
 }
 
+pub struct ComparisonResult {
+    pub avg: Comparison,
+    pub min: Comparison,
+    pub max: Comparison,
+}
+
+/// Compare two benchmark runs against each other. This holds the relevant information who won.
+pub enum Comparison {
+    Equal,
+    OneIsFaster,
+    TwoIsFaster,
+}
+
 
 
 /// Postprocess the results of all benchmark runs. Currently only prints a table with most
@@ -40,6 +53,43 @@ pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>) -> BTreeMap<S
             });
     }
     result
+}
+
+/// Compare two runs of the same benchmark against each other and store which one one (with the
+/// given percantage of tolerance for equality).
+pub fn compare_runs(run1: &BTreeMap<String, BMStatistics>, run2: &BTreeMap<String, BMStatistics>, tolerance: f64) -> BTreeMap<String, ComparisonResult> {
+    let mut result = BTreeMap::new();
+    
+    for bm_name in run1.keys() {
+        let stat1 = run1.get(bm_name).unwrap();
+        let stat2 = match run2.get(bm_name) {
+            Some(stats) => stats,
+            None => continue,
+        };
+        let best_min = compare_single(stat1.min, stat2.min, tolerance);
+        let best_max = compare_single(stat1.max, stat2.max, tolerance);
+        let best_avg = compare_single(stat1.avg, stat2.avg, tolerance);
+
+        result.insert(bm_name.to_string(), ComparisonResult {
+            avg: best_avg,
+            min: best_min,
+            max: best_max,
+        });
+    }
+
+    result
+}
+
+/// Compare two metrics for equality, tol(0. - 100.) is given in percent!
+fn compare_single(value1: f64, value2: f64, tol: f64) -> Comparison {
+    if (value1 - value2).abs() / value1.abs() < (tol / 100.) { return Comparison::Equal; }
+    else if value1 < value2 { return Comparison::OneIsFaster; }
+    else { return Comparison::TwoIsFaster; }
+}
+
+/// Calculate the procentual variance for that case. 100. * stddev / avg
+pub fn calc_relative_variance(statistics: &BMStatistics) -> f64 {
+    100. * statistics.dev / statistics.avg
 }
 
 /// Read in a result file and return all execution times mapped to their command name.
