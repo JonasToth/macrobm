@@ -102,5 +102,14 @@ share one FPU, explaining this effect.
   requirement and return 0 or -1 if the requirements are met or not. usefull
   for ci
 
+## Tests to implement
+
+relevance in the given order
+
+- Statistics calculation from raw data
+- Statistics comparison
+- Configuration files and correct default values
+- loading results give correct results
+
 ## Way later
 - submit subcommand to build a database of historic data
