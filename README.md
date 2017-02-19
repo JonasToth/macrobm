@@ -1,4 +1,6 @@
 # MacroBM - A tool to run MacroBenchmarks
+[![Build
+Status](https://travis-ci.org/JonasToth/macrobm.svg?branch=master)](https://travis-ci.org/JonasToth/macrobm)
 
 This repository hosts a tool called `macrobm` that will run benchmarks for
 arbitray commands and is able to compare different versions of a program
@@ -92,7 +94,7 @@ You can clearly see that running with only two threads results into lower
 runtimes. So the threads had to block in the `-j6` case. On this processor 2 cores 
 share one FPU, explaining this effect.
 
-## Todo
+## Features Todo
 
 - command to create a configuration as starting point as example to modify
 - allow groups in the config, hierarchy, until "cases" is found. These are then
@@ -102,12 +104,10 @@ share one FPU, explaining this effect.
   requirement and return 0 or -1 if the requirements are met or not. usefull
   for ci
 
-## Tests to implement
+## Tests Todo
 
 relevance in the given order
 
-- Statistics calculation from raw data
-- Statistics comparison
 - Configuration files and correct default values
 - loading results give correct results
 
