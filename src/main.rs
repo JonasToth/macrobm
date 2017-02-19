@@ -67,6 +67,11 @@ mod benchmarking;
 // statistics for the durations
 mod statistics;
 
+fn report_data(times: &BTreeMap<String, Vec<f32>>) {
+    messages::intro_report();
+    let stats = statistics::process_results(times);
+    messages::report_statistics(&stats);
+}
 
 fn main() {
     /// ---------------- Configuration for the command line parser
@@ -108,11 +113,9 @@ fn main() {
     // Handle subcommand for reporting.
     if let Some(sub_report) = matches.subcommand_matches("report") {
         let result_file = sub_report.value_of("input").unwrap_or("results.yml");
-        let report_data = statistics::read_result_from_file(result_file);
+        let bm_statistics = statistics::read_result_from_file(result_file);
 
-        messages::intro_report();
-        let stats = statistics::process_results(&report_data);
-        messages::report_statistics(&stats);
+        report_data(&bm_statistics);
     }
     // Default usage, run benchmarks.
     else {
@@ -155,9 +158,7 @@ fn main() {
         }
         messages::finished();
 
-        messages::intro_report();
-        let stats = statistics::process_results(&bm_statistics);
-        messages::report_statistics(&stats);
+        report_data(&bm_statistics);
 
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");
         messages::write_result_file(&result_file, &bm_statistics);
