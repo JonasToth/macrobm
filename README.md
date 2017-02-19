@@ -4,7 +4,7 @@ This repository hosts a tool called `macrobm` that will run benchmarks for
 arbitray commands and is able to compare different versions of a program
 performancewise.
 
-[!Usage Example](example.png)
+![Usage Example](example.png)
 
 ## Quickstart
 
