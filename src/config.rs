@@ -15,6 +15,7 @@ pub fn parse_config(file_name: &str) -> BTreeMap<String, RunConfig> {
     let mut cfg = BTreeMap::<String, RunConfig>::new();
 
     // default values, that can be set global for all cases
+    let default_cmd   = doc["command"].as_str().unwrap_or("");
     let default_count = doc["count"].as_i64().unwrap_or(1);
     let default_dir   = doc["directory"].as_str().unwrap_or(".");
     let default_args  = match doc["args"].as_vec() {
@@ -28,8 +29,11 @@ pub fn parse_config(file_name: &str) -> BTreeMap<String, RunConfig> {
 
     
     for bm in doc["cases"].as_vec().unwrap() {
-        let cmd_slice = bm["command"].as_str().unwrap();
-        let key = bm["name"].as_str().unwrap_or(cmd_slice).to_string();
+        let cmd = bm["command"].as_str().unwrap_or(default_cmd).to_string();
+
+        if cmd.is_empty() { panic!("No command provided for this benchmark!") }
+
+        let key = bm["name"].as_str().unwrap_or(&cmd).to_string();
         let args = match bm["args"].as_vec() {
             Some(v) => yaml_args_to_stringlist(v),
             None    => default_args.clone(),
@@ -41,7 +45,7 @@ pub fn parse_config(file_name: &str) -> BTreeMap<String, RunConfig> {
             description: bm["description"].as_str().unwrap_or("").to_string(),
             count: bm["count"].as_i64().unwrap_or(default_count),
             
-            command: cmd_slice.to_string(),
+            command: cmd,
             args: args,
             directory: bm["directory"].as_str().unwrap_or(default_dir).to_string(),
             environment: match bm["environment"].as_vec() {

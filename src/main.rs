@@ -103,7 +103,6 @@ fn main() {
                             SubCommand::with_name("report")
                                 .about("Print statistics of a previously run benchmark")
                                 .arg(Arg::with_name("input")
-                                     .short("i")
                                      .takes_value(true)
                                      .help("Filename of the result file wanted to inspect. Defaults to results.yml")
                                  )
@@ -137,7 +136,8 @@ fn main() {
 
         let gt_stats = statistics::read_result_from_file(ground_truth_file);
         let re_stats = statistics::read_result_from_file(result_file);
-
+        
+        messages::intro_diff(ground_truth_file, result_file);
         report_diff(&gt_stats, &re_stats);
     }
     // Default usage, run benchmarks.

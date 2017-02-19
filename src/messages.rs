@@ -23,14 +23,14 @@ pub fn intro(worker: usize) {
 /// Output run statistics either collected or read in from a result file.
 pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
     intro_report();
-    println!("{:6} {:10} {:10} {:8} {:10} {:20}", 
+    println!("{:^6} {:^10} {:^10} {:^8} {:^10} {:^20}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
              Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
              Blue.bold().paint("Name"));
 
     for (bm_name, stat) in stats {
-        let reldev = stat.dev / stat.avg;
-        println!("{:6} {:10.2} {:10.2} +-{:4.1}% {:10.2} {:20}", stat.count, stat.min, 
+        let reldev = 100. * stat.dev / stat.avg;
+        println!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^20}", stat.count, stat.min, 
                                                                  Bold.paint(stat.avg), reldev, 
                                                                  stat.max, Bold.paint(bm_name));
     }
@@ -38,28 +38,46 @@ pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
 
 /// Print out how two runs differ. With nice coloring where changes are.
 pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTreeMap<String, BMStatistics>) {
-    println!("{:6} {:10} {:10} {:8} {:10} {:20} {:10} {:10} {:8} {:10} {:6}", 
-             Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
-             Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
-             Blue.bold().paint("Name"),
-             Blue.bold().paint("Min"), Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
-             Blue.bold().paint("Max"), Blue.bold().paint("Runs"));
-
+    // intro is done in main function
+    
     for bm_name in gt_stats.keys() {
         let gt = gt_stats.get(bm_name).unwrap();
         let re = match result_stat.get(bm_name) {
             Some(stats) => stats,
             None => continue,
         };
-        let reldev = gt.dev / gt.avg;
-        print!("{:6} {:10.2} {:10.2} +-{:4.1}% {:10.2} {:20}", gt.count, gt.min, Bold.paint(gt.avg), 
-                                                          reldev, gt.max, 
-                                                          Bold.paint(bm_name));
-        let reldev = re.dev / re.avg;
-        print!("{:10.2} {:10.2} +-{:4.1}% {:10.2} {:6}", re.min, Bold.paint(re.avg), reldev, 
-                                                    re.max, re.count);
+
+        // color the output depending which of the metric is better for which data set
+        let (gt_min, re_min) = if gt.min <= re.min { (Green.paint(gt.min), Red.paint(re.min)) } 
+                               else { (Red.paint(gt.min), Green.paint(re.min)) };
+        
+        let (gt_max, re_max) = if gt.max <= re.max { (Green.paint(gt.max), Red.paint(re.max)) }
+                               else { (Red.paint(gt.max), Green.paint(re.max)) };
+        let (gt_avg, re_avg) = if gt.avg <= re.avg { (Green.bold().paint(gt.avg), Red.bold().paint(re.avg)) }
+                               else { (Red.bold().paint(gt.avg), Green.bold().paint(re.avg)) };
+
+        let reldev = 100. * gt.dev / gt.avg;
+        print!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^20}", gt.count, gt_min, gt_avg, 
+                                                               reldev, gt_max, 
+                                                               Bold.paint(bm_name));
+        let reldev = 100. * re.dev / re.avg;
+        print!("{:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^6}", re_min, re_avg, reldev, 
+                                                         re_max, re.count);
         println!("");
     }
+}
+
+pub fn intro_diff(gt_filename: &str, res_filename: &str) {
+    print!("{:^48}", Magenta.bold().paint(gt_filename));
+    print!("{:22}", "");
+    println!("{:^48}", Magenta.bold().paint(res_filename));
+
+    println!("{:^6} {:^10} {:^10} {:^8} {:^10} {:^20} {:^10} {:^10} {:^8} {:^10} {:^6}", 
+             Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
+             Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
+             Blue.bold().paint("Name"),
+             Blue.bold().paint("Min"), Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
+             Blue.bold().paint("Max"), Blue.bold().paint("Runs"));
 }
 
 /// Divider.
