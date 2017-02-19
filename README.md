@@ -3,10 +3,12 @@
 
 ## Todo
 
-- report subcommand -> read in raw data and give more statistical insight
-- history of data, allow raw data ouput into existing file -> merging many
-  versions
-- gnuplot - .dat generation from history as well -> maybe even plot scripts
 - allow groups in the config, hierarchy, until "cases" is found. These are then
   used to configure the runs, the rest are namespaces
-- allow global overrides, that can be specialized deeper in the hierarchy
+- environment variables must be handled correct
+- check subcommand, that will compare the statistics against a defined
+  requirement and return 0 or -1 if the requirements are met or not. usefull
+  for ci
+
+## Way later
+- submit subcommand to build a database of historic data
