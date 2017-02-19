@@ -3,32 +3,42 @@
 extern crate stat;
 use stat::{mean, minmax, absdev};
 use std::collections::{BTreeMap};
-use term_painter::ToStyle;
-use term_painter::Color::*;
-use term_painter::Attr::*;
 
 use config::file_to_yaml;
 
+
+pub struct BMStatistics {
+    /// average runtime of the benchmark
+    pub avg: f64,
+    /// shortest runtime of all runs
+    pub min: f64,
+    /// longest runtime of all runs
+    pub max: f64,
+    /// std deviation of the results, asuming a normal distribution of the runtimes
+    pub dev: f64,
+    /// number of measurements
+    pub count: usize,
+}
+
+
+
 /// Postprocess the results of all benchmark runs. Currently only prints a table with most
 /// interesting information.
-pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>) {
+pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>) -> BTreeMap<String, BMStatistics> {
+    let mut result = BTreeMap::new();
 
-    println!("{:6} {:10} {:8} {:7} {:7} {:20}", 
-             Blue.bold().paint("Runs"), Blue.bold().paint("Avg"), 
-             Blue.bold().paint("Dev"), Blue.bold().paint("Min"), Blue.bold().paint("Max"),
-             Blue.bold().paint("Name"));
-
-    for bm_name in run_statistic.keys() {
-        let ref times = run_statistic.get(bm_name).unwrap();
-        let avg = mean(times);
+    for (bm_name, times) in run_statistic {
         let (min, _, max, _) = minmax(times);
-        let dev = absdev(times);
-        let reldev = dev / avg * 100.;
-
-        println!("{:6} {:8.2} {:3.1}% {:8.2} {:8.2} {}", times.len(), Bold.paint(avg), 
-                                                         reldev, min, max, 
-                                                         Bold.paint(bm_name));
+        result.insert(bm_name.clone(),
+            BMStatistics{
+                avg: mean(times),
+                min: min,
+                max: max,
+                dev: absdev(times),
+                count: times.len(),
+            });
     }
+    result
 }
 
 /// Read in a result file and return all execution times mapped to their command name.

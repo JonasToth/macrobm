@@ -12,11 +12,26 @@ use std::io::prelude::*;
 use std::collections::BTreeMap;
 
 use execution_report::Report;
+use statistics::BMStatistics;
 
 
 /// Banner printed in every programm run.
 pub fn intro(worker: usize) {
     println!("Running {} {} threads", Blue.bold().paint("macro benchmarks"), worker);
+}
+
+pub fn report_statistics(stats: BTreeMap<String, BMStatistics>) {
+    println!("{:6} {:10} {:8} {:7} {:7} {:20}", 
+             Blue.bold().paint("Runs"), Blue.bold().paint("Avg"), 
+             Blue.bold().paint("Dev"), Blue.bold().paint("Min"), Blue.bold().paint("Max"),
+             Blue.bold().paint("Name"));
+
+    for (bm_name, stat) in stats {
+        let reldev = stat.dev / stat.avg;
+        println!("{:6} {:8.2} {:3.1}% {:8.2} {:8.2} {}", stat.count, Bold.paint(stat.avg), 
+                                                         reldev, stat.min, stat.max, 
+                                                         Bold.paint(bm_name));
+    }
 }
 
 /// Divider.
