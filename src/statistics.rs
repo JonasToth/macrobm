@@ -42,6 +42,7 @@ pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>) -> BTreeMap<S
     let mut result = BTreeMap::new();
 
     for (bm_name, times) in run_statistic {
+        assert!(times.len() > 0);
         let (min, _, max, _) = minmax(times);
         result.insert(bm_name.clone(),
             BMStatistics{
@@ -53,6 +54,31 @@ pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>) -> BTreeMap<S
             });
     }
     result
+}
+
+#[test]
+fn test_process_results() {
+    let mut collected_times = BTreeMap::new();
+    collected_times.insert("simulation".to_string(), vec![15., 14., 16.]);
+    let stats = process_results(&collected_times);
+    let stats = stats.get("simulation").unwrap();
+    
+    assert_eq!(stats.avg, 15., "Avg is wrong");
+    assert_eq!(stats.min, 14., "Min is wrong");
+    assert_eq!(stats.max, 16., "Max is wrong");
+    match compare_single(stats.dev, 0.6666, 0.5) {
+        Comparison::Equal => (),
+        _ => panic!("Dev is wrong"),
+    };
+    assert_eq!(stats.count, 3, "Count is wrong");
+}
+
+#[test]
+#[should_panic(expected = "assertion failed")]
+fn test_process_results_invalid() {
+    let mut collected_times = BTreeMap::new();
+    collected_times.insert("simulation".to_string(), Vec::<f32>::new());
+    process_results(&collected_times);
 }
 
 /// Compare two runs of the same benchmark against each other and store which one one (with the
@@ -80,16 +106,137 @@ pub fn compare_runs(run1: &BTreeMap<String, BMStatistics>, run2: &BTreeMap<Strin
     result
 }
 
+#[test]
+fn test_compare_runs() {
+    // run 1 is faster then run 2
+    let run1 = {
+        let mut x = BTreeMap::<String,_>::new();
+                x.insert("sleep".to_string(), BMStatistics{
+                    avg: 15.3,
+                    min: 15.1,
+                    max: 15.5,
+                    dev: 0.005,
+                    count: 100,
+                });
+                x.insert("not_in_other".to_string(), BMStatistics{
+                    avg: 1.,
+                    min: 0.9,
+                    max: 1.6,
+                    dev: 0.2,
+                    count: 3,
+                });
+        x
+    };
+    let run2 = {
+        let mut x = BTreeMap::new();
+                x.insert("sleep".to_string(), BMStatistics{
+                    avg: 16.3,
+                    min: 16.1,
+                    max: 16.5,
+                    dev: 0.005,
+                    count: 100,
+                });
+                x.insert("some_unused".to_string(), BMStatistics{
+                    avg: 1.,
+                    min: 0.9,
+                    max: 1.6,
+                    dev: 0.2,
+                    count: 3,
+                });
+        x
+    };
+
+    let cmp = compare_runs(&run1, &run2, 2.);
+    // check outcome
+    let c = cmp.get("sleep").unwrap();
+    match c.avg { Comparison::OneIsFaster => (), _ => panic!("one is faster!"), }
+    match c.min { Comparison::OneIsFaster => (), _ => panic!("one is faster!"), }
+    match c.max { Comparison::OneIsFaster => (), _ => panic!("one is faster!"), }
+    match cmp.get("not_in_other") { Some(_) => panic!("Not allowed in the result!"),
+                                    None => (), }
+    match cmp.get("some_unused") { Some(_) => panic!("Not allowed in the result!"),
+                                   None => (), }
+
+    // same as previous comparison, but swapped
+    let cmp = compare_runs(&run2, &run1, 2.);
+    // check outcome
+    let c = cmp.get("sleep").unwrap();
+    match c.avg { Comparison::TwoIsFaster => (), _ => panic!("two is faster!"), }
+    match c.min { Comparison::TwoIsFaster => (), _ => panic!("two is faster!"), }
+    match c.max { Comparison::TwoIsFaster => (), _ => panic!("two is faster!"), }
+    match cmp.get("not_in_other") { Some(_) => panic!("Not allowed in the result!"),
+                                    None => (), }
+    match cmp.get("some_unused") { Some(_) => panic!("Not allowed in the result!"),
+                                   None => (), }
+
+    // same as previous comparison, but equality because high tolerance
+    let cmp = compare_runs(&run2, &run1, 50.);
+    // check outcome
+    let c = cmp.get("sleep").unwrap();
+    match c.avg { Comparison::Equal => (), _ => panic!("result considered equal!"), }
+    match c.min { Comparison::Equal => (), _ => panic!("result considered equal!"), }
+    match c.max { Comparison::Equal => (), _ => panic!("result considered equal!"), }
+    match cmp.get("not_in_other") { Some(_) => panic!("Not allowed in the result!"),
+                                    None => (), }
+    match cmp.get("some_unused") { Some(_) => panic!("Not allowed in the result!"),
+                                   None => (), }
+}
+
 /// Compare two metrics for equality, tol(0. - 100.) is given in percent!
 fn compare_single(value1: f64, value2: f64, tol: f64) -> Comparison {
-    if (value1 - value2).abs() / value1.abs() < (tol / 100.) { return Comparison::Equal; }
+    assert!(value1 != 0.);
+    if (value1 - value2).abs() / value1.abs() <= (tol / 100.) { return Comparison::Equal; }
     else if value1 < value2 { return Comparison::OneIsFaster; }
     else { return Comparison::TwoIsFaster; }
+}
+
+#[test]
+fn test_compare_single() {
+    match compare_single(1., 1., 0.) {
+        Comparison::Equal => (),
+        _ => panic!("Expected equality!"),
+    }
+
+    match compare_single(1., 1., 0.01) {
+        Comparison::Equal => (),
+        _ => panic!("Expected equality!"),
+    }
+
+    match compare_single(100., 105., 1.) {
+        Comparison::OneIsFaster => (),
+        _   => panic!("Expected one is faster!"),
+    }
+
+    match compare_single(105., 100., 1.) {
+        Comparison::TwoIsFaster=> (),
+        _   => panic!("Expected two is faster!"),
+    }
+
+    match compare_single(100., 103., 4.) {
+        Comparison::Equal => (),
+        _ => panic!("Expected equality!"),
+    }
 }
 
 /// Calculate the procentual variance for that case. 100. * stddev / avg
 pub fn calc_relative_variance(statistics: &BMStatistics) -> f64 {
     100. * statistics.dev / statistics.avg
+}
+
+#[test]
+fn test_relative_variance() {
+    let mut ez_stats = BMStatistics{
+        avg: 15.,
+        min: 0.,
+        max: 0.,
+        dev: 0.,
+        count: 100,
+    };
+    assert_eq!(calc_relative_variance(&ez_stats), 0.);
+
+    ez_stats.avg = 100.;
+    ez_stats.dev = 1.;
+    assert_eq!(calc_relative_variance(&ez_stats), 1.);
 }
 
 /// Read in a result file and return all execution times mapped to their command name.
