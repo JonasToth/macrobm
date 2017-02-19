@@ -4,6 +4,8 @@ This repository hosts a tool called `macrobm` that will run benchmarks for
 arbitray commands and is able to compare different versions of a program
 performancewise.
 
+[!Usage Example](example.png)
+
 ## Quickstart
 
 It is inspired by the `CMake` tools and `linux perf` and tries to be useable
