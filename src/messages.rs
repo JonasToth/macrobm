@@ -68,9 +68,9 @@ pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTre
 }
 
 pub fn intro_diff(gt_filename: &str, res_filename: &str) {
-    print!("{:^48}", Magenta.bold().paint(gt_filename));
-    print!("{:22}", "");
-    println!("{:^48}", Magenta.bold().paint(res_filename));
+    print!("{:^48}", Blue.bold().paint(gt_filename));
+    print!("{:22}", Blue.bold().paint("====================="));
+    println!("{:^48}", Blue.bold().paint(res_filename));
 
     println!("{:^6} {:^10} {:^10} {:^8} {:^10} {:^20} {:^10} {:^10} {:^8} {:^10} {:^6}", 
              Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
