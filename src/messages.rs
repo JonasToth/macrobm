@@ -20,30 +20,59 @@ pub fn intro(worker: usize) {
     println!("Running {} {} threads", Blue.bold().paint("macro benchmarks"), worker);
 }
 
+/// Output run statistics either collected or read in from a result file.
 pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
-    println!("{:6} {:10} {:8} {:7} {:7} {:20}", 
-             Blue.bold().paint("Runs"), Blue.bold().paint("Avg"), 
-             Blue.bold().paint("Dev"), Blue.bold().paint("Min"), Blue.bold().paint("Max"),
+    intro_report();
+    println!("{:6} {:10} {:10} {:8} {:10} {:20}", 
+             Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
+             Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
              Blue.bold().paint("Name"));
 
     for (bm_name, stat) in stats {
         let reldev = stat.dev / stat.avg;
-        println!("{:6} {:8.2} {:3.1}% {:8.2} {:8.2} {}", stat.count, Bold.paint(stat.avg), 
-                                                         reldev, stat.min, stat.max, 
-                                                         Bold.paint(bm_name));
+        println!("{:6} {:10.2} {:10.2} +-{:4.1}% {:10.2} {:20}", stat.count, stat.min, 
+                                                                 Bold.paint(stat.avg), reldev, 
+                                                                 stat.max, Bold.paint(bm_name));
+    }
+}
+
+/// Print out how two runs differ. With nice coloring where changes are.
+pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTreeMap<String, BMStatistics>) {
+    println!("{:6} {:10} {:10} {:8} {:10} {:20} {:10} {:10} {:8} {:10} {:6}", 
+             Blue.bold().paint("Runs"), Blue.bold().paint("Min"), 
+             Blue.bold().paint("Avg"), Blue.bold().paint("Dev"), Blue.bold().paint("Max"),
+             Blue.bold().paint("Name"),
+             Blue.bold().paint("Min"), Blue.bold().paint("Avg"), Blue.bold().paint("Dev"),
+             Blue.bold().paint("Max"), Blue.bold().paint("Runs"));
+
+    for bm_name in gt_stats.keys() {
+        let gt = gt_stats.get(bm_name).unwrap();
+        let re = match result_stat.get(bm_name) {
+            Some(stats) => stats,
+            None => continue,
+        };
+        let reldev = gt.dev / gt.avg;
+        print!("{:6} {:10.2} {:10.2} +-{:4.1}% {:10.2} {:20}", gt.count, gt.min, Bold.paint(gt.avg), 
+                                                          reldev, gt.max, 
+                                                          Bold.paint(bm_name));
+        let reldev = re.dev / re.avg;
+        print!("{:10.2} {:10.2} +-{:4.1}% {:10.2} {:6}", re.min, Bold.paint(re.avg), reldev, 
+                                                    re.max, re.count);
+        println!("");
     }
 }
 
 /// Divider.
-pub fn intro_report() {
+fn intro_report() {
     println!("{}", Bold.paint("==========================================================================="));
 }
 
 /// Error message for an invalid configuration file for benchmarks.
-pub fn invalid_config_filename(fname: &str) {
-    println!("{} could not open file {} as config.", Red.bold().paint("Failure"), Red.paint(fname));
+pub fn invalid_filename(fname: &str) {
+    println!("{} could not open file {} for processing.", Red.bold().paint("Failure"), Red.paint(fname));
 }
 
+/// Error message when invalid yml was in a file.
 pub fn invalid_yaml(fname: &str) {
     println!("Error while parsing yml file {}!", Red.paint(fname));
 }

@@ -66,9 +66,15 @@ mod benchmarking;
 mod statistics;
 
 fn report_data(times: &BTreeMap<String, Vec<f32>>) {
-    messages::intro_report();
     let stats = statistics::process_results(times);
     messages::report_statistics(&stats);
+}
+
+fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>, results: &BTreeMap<String, Vec<f32>>) {
+    let gt_stats = statistics::process_results(ground_truth);
+    let re_stats = statistics::process_results(results);
+
+    messages::report_diff(&gt_stats, &re_stats);
 }
 
 fn main() {
@@ -105,6 +111,15 @@ fn main() {
                        .subcommand(
                            SubCommand::with_name("diff")
                                 .about("Compare two different result files with same benchmarks and show differences")
+                                .arg(Arg::with_name("ground_truth")
+                                     .required(true)
+                                     .takes_value(true)
+                                     .help("Dataset we compare against.")
+                                )
+                                .arg(Arg::with_name("new_result")
+                                     .takes_value(true)
+                                     .help("Benchmark to compare against the ground truth. Defaults to results.yml")
+                                )
                        )
                        .get_matches();
     
@@ -114,6 +129,16 @@ fn main() {
         let bm_statistics = statistics::read_result_from_file(result_file);
 
         report_data(&bm_statistics);
+    }
+    // Compare different runs between each other
+    else if let Some(sub_diff) = matches.subcommand_matches("diff") {
+        let ground_truth_file = sub_diff.value_of("ground_truth").unwrap();
+        let result_file = sub_diff.value_of("new_result").unwrap_or("results.yml");
+
+        let gt_stats = statistics::read_result_from_file(ground_truth_file);
+        let re_stats = statistics::read_result_from_file(result_file);
+
+        report_diff(&gt_stats, &re_stats);
     }
     // Default usage, run benchmarks.
     else {
@@ -138,7 +163,7 @@ fn main() {
         let mut scheduled = 0;
         for (name, config) in &bm_cfg {
             messages::scheduled_command(&name, config.count);
-            bm_statistics.insert(name.clone(), Vec::<f32>::new());
+            bm_statistics.insert(name.to_string(), Vec::<f32>::new());
             benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
             scheduled+= config.count;
         }

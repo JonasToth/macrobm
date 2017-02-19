@@ -1,8 +1,6 @@
 /// Logic and functionality to actually perform the benchmarks.
 ///
 
-use bm_runconfig::RunConfig;
-
 // subprocesses to call the command we want to measure
 use std::process::{Command, Stdio, ExitStatus};
 use threadpool::ThreadPool;

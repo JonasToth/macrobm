@@ -2,8 +2,7 @@
 
 use yaml_rust::{Yaml,YamlLoader};
 
-use bm_runconfig::RunConfig;
-
+use benchmarking::RunConfig;
 use std::fs::File;
 use std::io::Read;
 use std::collections::BTreeMap;
@@ -62,7 +61,7 @@ pub fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
     // open the file
     let mut config_file = match File::open(file_name) {
         Ok(file) => file,
-        Err(e)   => { messages::invalid_config_filename(file_name);
+        Err(e)   => { messages::invalid_filename(file_name);
                       panic!("{}", e); }
     };
 
