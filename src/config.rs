@@ -162,6 +162,7 @@ fn test_yaml_strings_to_native_strings_failcondition() {
 
 
 
+#[allow(dead_code)]
 fn test_config_helper(yaml_str: &str) -> BTreeMap<String, RunConfig> {
     let yaml = YamlLoader::load_from_str(yaml_str).unwrap();
     config_from_yaml(&yaml[0])
