@@ -8,10 +8,35 @@ use std::io::Read;
 use std::collections::BTreeMap;
 use messages;
 
+/// Read in a file and try to generate yml out of it. Will panic if yaml cant be loaded.
+pub fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
+    // open the file
+    let mut config_file = match File::open(file_name) {
+        Ok(file) => file,
+        Err(e)   => { messages::invalid_filename(file_name);
+                      panic!("{}", e); }
+    };
+
+    let mut config_file_content = String::new();
+    config_file.read_to_string(&mut config_file_content).unwrap();
+    let yaml = match YamlLoader::load_from_str(&config_file_content) {
+        Ok(vec)   => vec,
+        Err(e)    => { messages::invalid_yaml(file_name);
+                       panic!(e); },
+    };
+
+    yaml
+}
+
+
 /// Parse the config file and create internal data structure used to spawn a benchmark.
-pub fn parse_config(file_name: &str) -> BTreeMap<String, RunConfig> {
+pub fn parse_config_file(file_name: &str) -> BTreeMap<String, RunConfig> {
     let yaml_doc = file_to_yaml(file_name);
     let doc = &yaml_doc[0];
+    config_from_yaml(doc)
+}
+
+fn config_from_yaml(doc: &Yaml) -> BTreeMap<String, RunConfig> {
     let mut cfg = BTreeMap::<String, RunConfig>::new();
 
     // default values, that can be set global for all cases
@@ -60,26 +85,6 @@ pub fn parse_config(file_name: &str) -> BTreeMap<String, RunConfig> {
     cfg
 }
 
-/// Read in a file and try to generate yml out of it. Will panic if yaml cant be loaded.
-pub fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
-    // open the file
-    let mut config_file = match File::open(file_name) {
-        Ok(file) => file,
-        Err(e)   => { messages::invalid_filename(file_name);
-                      panic!("{}", e); }
-    };
-
-    let mut config_file_content = String::new();
-    config_file.read_to_string(&mut config_file_content).unwrap();
-    let yaml = match YamlLoader::load_from_str(&config_file_content) {
-        Ok(vec)   => vec,
-        Err(e)    => { messages::invalid_yaml(file_name);
-                       panic!(e); },
-    };
-
-    yaml
-}
-
 /// Parse a yaml-Vector to strings, to use this list of strings as argument to start the wanted
 /// process.
 fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String>
@@ -111,3 +116,52 @@ fn yaml_stringarray_to_native(strings: &Vec<Yaml>) -> Vec<String> {
     }
     result
 }
+
+
+
+// --------------------- Test for parsing the config files ------------------
+
+#[test]
+fn test_yaml_args_to_strings() {
+    let yaml_args = vec![Yaml::Real("0.234".to_string()), Yaml::Integer(15), 
+                         Yaml::String("hallo".to_string()), Yaml::Null];
+    let strings = yaml_args_to_stringlist(&yaml_args);
+    
+    assert_eq!(strings.len(), 3);
+    assert_eq!(strings[0], "0.234");
+    assert_eq!(strings[1], "15");
+    assert_eq!(strings[2], "hallo");
+}
+
+#[test]
+#[should_panic]
+fn test_yaml_args_to_strings_failcondition() {
+    let yaml_args = vec![Yaml::Array(vec![Yaml::Integer(1),Yaml::Integer(2),
+                                          Yaml::Integer(3)])];
+    yaml_args_to_stringlist(&yaml_args);
+}
+
+
+#[test]
+fn test_yaml_strings_to_native_strings() {
+    let yaml_string = vec![Yaml::String("Hallo".to_string()), 
+                           Yaml::String("Welt".to_string())];
+    let native_string = yaml_stringarray_to_native(&yaml_string);
+    
+    assert_eq!(native_string[0], "Hallo");
+    assert_eq!(native_string[1], "Welt");
+}
+
+#[test]
+#[should_panic]
+fn test_yaml_strings_to_native_strings_failcondition() {
+    let yaml_string = vec![Yaml::Integer(1), Yaml::Real("0.5123".to_string())];
+    yaml_stringarray_to_native(&yaml_string);
+}
+
+
+
+
+
+
+

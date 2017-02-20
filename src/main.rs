@@ -152,7 +152,7 @@ fn main() {
         // ---------------- Read configuration for the benchmarks
         let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
         // TODO insert global defaults from command line
-        let bm_cfg = config::parse_config(cfg_file_name);
+        let bm_cfg = config::parse_config_file(cfg_file_name);
 
         // --------------- Create place to save all results of the benchmarking
         let mut bm_statistics = BTreeMap::new();
