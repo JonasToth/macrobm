@@ -70,11 +70,11 @@ fn report_data(times: &BTreeMap<String, Vec<f32>>) {
     messages::report_statistics(&stats);
 }
 
-fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>, results: &BTreeMap<String, Vec<f32>>) {
+fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>, results: &BTreeMap<String, Vec<f32>>, tolerance: f64) {
     let gt_stats = statistics::process_results(ground_truth);
     let re_stats = statistics::process_results(results);
 
-    messages::report_diff(&gt_stats, &re_stats);
+    messages::report_diff(&gt_stats, &re_stats, tolerance);
 }
 
 fn main() {
@@ -119,6 +119,11 @@ fn main() {
                                      .takes_value(true)
                                      .help("Benchmark to compare against the ground truth. Defaults to results.yml")
                                 )
+                                .arg(Arg::with_name("tolerance")
+                                     .short("t")
+                                     .takes_value(true)
+                                     .help("Modify tolerance in percent, to consider values as equal. Default is 2%")
+                                 )
                        )
                        .get_matches();
     
@@ -133,12 +138,14 @@ fn main() {
     else if let Some(sub_diff) = matches.subcommand_matches("diff") {
         let ground_truth_file = sub_diff.value_of("ground_truth").unwrap();
         let result_file = sub_diff.value_of("new_result").unwrap_or("results.yml");
+        let tolerance = sub_diff.value_of("tolerance").unwrap_or("2.");
+        let tolerance = tolerance.parse::<f64>().unwrap();
 
         let gt_stats = statistics::read_result_from_file(ground_truth_file);
         let re_stats = statistics::read_result_from_file(result_file);
         
         messages::intro_diff(ground_truth_file, result_file);
-        report_diff(&gt_stats, &re_stats);
+        report_diff(&gt_stats, &re_stats, tolerance);
     }
     // Default usage, run benchmarks.
     else {

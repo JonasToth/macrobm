@@ -37,8 +37,8 @@ pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
 }
 
 /// Print out how two runs differ. With nice coloring where changes are.
-pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTreeMap<String, BMStatistics>) {
-    let comparison = statistics::compare_runs(gt_stats, result_stat, 2.);
+pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>, result_stat: &BTreeMap<String, BMStatistics>, tolerance: f64) {
+    let comparison = statistics::compare_runs(gt_stats, result_stat, tolerance);
 
     for (bm_name, cmp) in comparison {
         let gt = gt_stats.get(&bm_name).unwrap();
