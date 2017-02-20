@@ -32,13 +32,16 @@ pub struct Report {
 
 impl Report {
     pub fn new(name: String, dur: Duration, code: ExitStatus) -> Report {
-        let seconds: f32 = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1000000000.;
         Report {
             name: name,
-            duration: seconds,
+            duration: convert_duration_to_seconds(dur),
             ecode: code,
         }
     }
+}
+
+fn convert_duration_to_seconds(dur: Duration) -> f32 {
+    dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1000000000.
 }
 
 /// Start all benchmarks in a threadpool and configure a channel to receive a Report for every
@@ -69,3 +72,16 @@ pub fn do_benchmark(pool: &ThreadPool, name: &str, channel_trans: mpsc::Sender<R
         });
     }
 }
+
+
+// --------------------- tests for the functionality of benchmarking ---------------------------
+
+
+#[test]
+fn test_duration_conversion_to_seconds_float() {
+    let d = Duration::from_millis(1500);
+    assert_eq!(convert_duration_to_seconds(d), 1.5);
+}
+
+
+
