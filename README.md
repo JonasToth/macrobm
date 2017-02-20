@@ -103,12 +103,14 @@ share one FPU, explaining this effect.
 - check subcommand, that will compare the statistics against a defined
   requirement and return 0 or -1 if the requirements are met or not. usefull
   for ci
+- Spawn runs until statistics stabilize
+- status output for the complete process, how many cmds failed, how long did it
+  take
 
 ## Tests Todo
 
 relevance in the given order
 
-- Configuration files and correct default values
 - loading results give correct results
 
 ## Way later
