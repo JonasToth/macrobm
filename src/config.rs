@@ -36,6 +36,7 @@ pub fn parse_config_file(file_name: &str) -> BTreeMap<String, RunConfig> {
     config_from_yaml(doc)
 }
 
+/// Parse a yml document as configuration.
 fn config_from_yaml(doc: &Yaml) -> BTreeMap<String, RunConfig> {
     let mut cfg = BTreeMap::<String, RunConfig>::new();
 
