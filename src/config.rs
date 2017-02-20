@@ -256,21 +256,21 @@ fn test_cfg_no_name() {
 
 #[test]
 fn test_cfg_realworld1() {
-	let yaml_str = "---
-	count: 30
-	command: \"../ulf.x\"
-	cases:
-		- name: \"hReactor_ct\"
-		  args: [\"-f\", \"hReactor/hReactor_ct.ulf\"]
+    let yaml_str = "---
+    count: 30
+    command: \"../ulf.x\"
+    cases:
+        - name: \"hReactor_ct\"
+          args: [\"-f\", \"hReactor/hReactor_ct.ulf\"]
 
-		- name: \"hReactor_ct_chem\"
-		  args: [\"-f\", \"hReactor/hReactor_ct_chem.ulf\"]
+        - name: \"hReactor_ct_chem\"
+          args: [\"-f\", \"hReactor/hReactor_ct_chem.ulf\"]
 
-		- name: \"hReactor_eg\"
-		  args: [\"-f\", \"hReactor/hReactor_eg.ulf\"]
+        - name: \"hReactor_eg\"
+          args: [\"-f\", \"hReactor/hReactor_eg.ulf\"]
 
-		- name: \"hReactor_uc\"
-		  args: [\"-f\", \"hReactor/hReactor_uc.ulf\"]";
+        - name: \"hReactor_uc\"
+          args: [\"-f\", \"hReactor/hReactor_uc.ulf\"]";
     let cfg = test_config_helper(yaml_str);
 
 	assert_eq!(cfg["hReactor_ct"].command, "../ulf.x");
