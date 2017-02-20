@@ -161,7 +161,145 @@ fn test_yaml_strings_to_native_strings_failcondition() {
 
 
 
+fn test_config_helper(yaml_str: &str) -> BTreeMap<String, RunConfig> {
+    let yaml = YamlLoader::load_from_str(yaml_str).unwrap();
+    config_from_yaml(&yaml[0])
+}
+#[test]
+fn test_cfg_explicit_case_list_simple1() {
+    let yaml_str = "---
+    cases:
+        - name: \"testcase_simple\"
+          command: \"testcase_command\"
+          count: 20";
+    let cfg  = test_config_helper(yaml_str);
 
+    assert_eq!(cfg["testcase_simple"].name, "testcase_simple");
+    assert_eq!(cfg["testcase_simple"].command, "testcase_command");
+    assert_eq!(cfg["testcase_simple"].count, 20);
+}
 
+#[test]
+fn test_cfg_explicit_case_list_simple2() {
+    let yaml_str = "---
+    cases:
+        - name: \"testcase1\"
+          command: \"testcmd1\"
+          count: 15
+        - name: \"testcase2\"
+          command: \"testcmd2\"
+          count: 30";
+    let cfg  = test_config_helper(yaml_str);
+
+    assert_eq!(cfg["testcase1"].name, "testcase1");
+    assert_eq!(cfg["testcase1"].command, "testcmd1");
+    assert_eq!(cfg["testcase1"].count, 15);
+
+    assert_eq!(cfg["testcase2"].name, "testcase2");
+    assert_eq!(cfg["testcase2"].command, "testcmd2");
+    assert_eq!(cfg["testcase2"].count, 30);
+}
+
+#[test]
+fn test_cfg_defaulted_command() {
+    let yaml_str = "---
+    command: \"common_command\"
+    cases:
+        - name: \"testcase1\"
+          count: 15
+        - name: \"testcase2\"
+          count: 30";
+    let cfg  = test_config_helper(yaml_str);
+
+    assert_eq!(cfg["testcase1"].name, "testcase1");
+    assert_eq!(cfg["testcase1"].command, "common_command");
+    assert_eq!(cfg["testcase1"].count, 15);
+
+    assert_eq!(cfg["testcase2"].name, "testcase2");
+    assert_eq!(cfg["testcase2"].command, "common_command");
+    assert_eq!(cfg["testcase2"].count, 30);
+}
+
+#[test]
+fn test_cfg_command_arguments() {
+    let yaml_str = "---
+    cases:
+        - name: \"testcase\"
+          command: \"testcommand_with_args\"
+          args: [\"string\", 15, 123.14]
+          count: 15
+          directory: \"/etc/apache2/\"";
+    let cfg  = test_config_helper(yaml_str);
+
+    assert_eq!(cfg["testcase"].name, "testcase");
+    assert_eq!(cfg["testcase"].command, "testcommand_with_args");
+    assert_eq!(cfg["testcase"].count, 15);
+    assert_eq!(cfg["testcase"].directory, "/etc/apache2/");
+
+    let expected_args = vec!["string".to_string(), "15".to_string(), "123.14".to_string()];
+    assert_eq!(cfg["testcase"].args[0].to_string(), expected_args[0]);
+    assert_eq!(cfg["testcase"].args[1].to_string(), expected_args[1]);
+    assert_eq!(cfg["testcase"].args[2].to_string(), expected_args[2]);
+}
+
+#[test]
+fn test_cfg_no_name() {
+    let yaml_str = "---
+    cases:
+        - command: \"descriptive_command\"";
+    let cfg = test_config_helper(yaml_str);
+
+    assert_eq!(cfg["descriptive_command"].name, "descriptive_command");
+    assert_eq!(cfg["descriptive_command"].command, "descriptive_command");
+    assert_eq!(cfg["descriptive_command"].count, 1);
+}
+
+#[test]
+fn test_cfg_realworld1() {
+	let yaml_str = "---
+	count: 30
+	command: \"../ulf.x\"
+	cases:
+		- name: \"hReactor_ct\"
+		  args: [\"-f\", \"hReactor/hReactor_ct.ulf\"]
+
+		- name: \"hReactor_ct_chem\"
+		  args: [\"-f\", \"hReactor/hReactor_ct_chem.ulf\"]
+
+		- name: \"hReactor_eg\"
+		  args: [\"-f\", \"hReactor/hReactor_eg.ulf\"]
+
+		- name: \"hReactor_uc\"
+		  args: [\"-f\", \"hReactor/hReactor_uc.ulf\"]";
+    let cfg = test_config_helper(yaml_str);
+
+	assert_eq!(cfg["hReactor_ct"].command, "../ulf.x");
+	assert_eq!(cfg["hReactor_ct"].name, "hReactor_ct");
+    let expected_args = vec!["-f".to_string(), "hReactor/hReactor_ct.ulf".to_string()];
+    assert_eq!(cfg["hReactor_ct"].args[0].to_string(), expected_args[0]);
+    assert_eq!(cfg["hReactor_ct"].args[1].to_string(), expected_args[1]);
+	assert_eq!(cfg["hReactor_ct"].count, 30);
+
+	assert_eq!(cfg["hReactor_ct_chem"].command, "../ulf.x");
+	assert_eq!(cfg["hReactor_ct_chem"].name, "hReactor_ct_chem");
+    let expected_args = vec!["-f".to_string(), "hReactor/hReactor_ct_chem.ulf".to_string()];
+    assert_eq!(cfg["hReactor_ct_chem"].args[0].to_string(), expected_args[0]);
+    assert_eq!(cfg["hReactor_ct_chem"].args[1].to_string(), expected_args[1]);
+	assert_eq!(cfg["hReactor_ct_chem"].count, 30);
+
+	assert_eq!(cfg["hReactor_eg"].command, "../ulf.x");
+	assert_eq!(cfg["hReactor_eg"].name, "hReactor_eg");
+    let expected_args = vec!["-f".to_string(), "hReactor/hReactor_eg.ulf".to_string()];
+    assert_eq!(cfg["hReactor_eg"].args[0].to_string(), expected_args[0]);
+    assert_eq!(cfg["hReactor_eg"].args[1].to_string(), expected_args[1]);
+	assert_eq!(cfg["hReactor_eg"].count, 30);
+
+	assert_eq!(cfg["hReactor_uc"].command, "../ulf.x");
+	assert_eq!(cfg["hReactor_uc"].name, "hReactor_uc");
+    let expected_args = vec!["-f".to_string(), "hReactor/hReactor_uc.ulf".to_string()];
+    assert_eq!(cfg["hReactor_uc"].args[0].to_string(), expected_args[0]);
+    assert_eq!(cfg["hReactor_uc"].args[1].to_string(), expected_args[1]);
+	assert_eq!(cfg["hReactor_uc"].count, 30);
+}
 
 
