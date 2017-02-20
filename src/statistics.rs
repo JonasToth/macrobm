@@ -5,6 +5,7 @@ use stat::{mean, minmax, absdev};
 use std::collections::{BTreeMap};
 
 use config::file_to_yaml;
+use yaml_rust::Yaml;
 
 
 #[derive(Debug)]
@@ -98,9 +99,13 @@ pub fn calc_relative_variance(statistics: &BMStatistics) -> f64 {
 pub fn read_result_from_file(file_name: &str) -> BTreeMap<String, Vec<f32>> {
     let yml = file_to_yaml(file_name);
     let yml = &yml[0];
+    results_from_yaml(&yml)
+}
+
+fn results_from_yaml(doc: &Yaml) -> BTreeMap<String, Vec<f32>> {
     let mut result = BTreeMap::new();
 
-    for single_result in yml.as_vec().unwrap() {
+    for single_result in doc.as_vec().unwrap() {
         let single_result = single_result.as_hash().unwrap();
 
         for (name, times) in single_result {
@@ -112,7 +117,6 @@ pub fn read_result_from_file(file_name: &str) -> BTreeMap<String, Vec<f32>> {
             result.insert(name.as_str().unwrap().to_string(), times_float);
         }
     }
-
     result
 }
 
