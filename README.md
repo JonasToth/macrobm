@@ -96,16 +96,18 @@ share one FPU, explaining this effect.
 
 ## Features Todo
 
-- command to create a configuration as starting point as example to modify
-- allow groups in the config, hierarchy, until "cases" is found. These are then
-  used to configure the runs, the rest are namespaces
-- environment variables must be handled correct
+- command to create a configuration as starting point as example to modify - high
+- status output for the complete process, how many cmds failed, how long did it
+  take - high and ez
+- whowins subcommand to compare many results and find the winner for each category and case - mid
 - check subcommand, that will compare the statistics against a defined
   requirement and return 0 or -1 if the requirements are met or not. usefull
-  for ci
-- Spawn runs until statistics stabilize
-- status output for the complete process, how many cmds failed, how long did it
-  take
+  for ci - mid 
+- Spawn runs until statistics stabilize - low
+- allow groups in the config, hierarchy, until "cases" is found. These are then
+  used to configure the runs, the rest are namespaces - low, files are enough i think
+- environment variables must be handled correct - low
+
 
 ## Tests Todo
 
