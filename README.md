@@ -98,8 +98,6 @@ share one FPU, explaining this effect.
 ## Features Todo
 
 - command to create a configuration as starting point as example to modify - high
-- status output for the complete process, how many cmds failed, how long did it
-  take - high and ez
 - whowins subcommand to compare many results and find the winner for each category and case - mid
 - check subcommand, that will compare the statistics against a defined
   requirement and return 0 or -1 if the requirements are met or not. usefull
