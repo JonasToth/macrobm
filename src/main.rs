@@ -50,6 +50,8 @@ extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
 
+use std::time::Instant;
+
 // save results in hashmap
 use std::collections::BTreeMap;
 
@@ -164,6 +166,9 @@ fn main() {
         // --------------- Banner Message
         messages::intro(n_workers);
 
+        // start timer to measure overall runtime
+        let start_all = Instant::now();
+
         // --------------- Schedule all wanted commands n times
         let mut scheduled = 0;
         for (name, config) in &bm_cfg {
@@ -174,6 +179,9 @@ fn main() {
         }
 
         // ------------- Wait for all bm to finish and notice the user about the state of the program.
+        let mut successes = 0;
+        let mut fails     = 0;
+
         for finished in 0..scheduled {
             let report = rx.recv().unwrap();
             // process report
@@ -182,10 +190,20 @@ fn main() {
                 None => (),
             };
             // output information
-            messages::finished_program(report, finished + 1, scheduled);
+            messages::finished_program(&report, finished + 1, scheduled);
+
+            if report.ecode.success() { successes += 1 }
+            else { fails += 1 }
         }
         messages::finished();
 
+        // stop timer
+        let overall_time = start_all.elapsed();
+
+        // report the time and state of all benchmarks
+        messages::report_runinformation(overall_time, successes, fails);
+
+        // report detailed benchmark statistics for each case
         report_data(&bm_statistics);
 
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");

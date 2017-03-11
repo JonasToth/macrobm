@@ -17,11 +17,12 @@ All it needs is a `benchmarks.yml` file, where the commands for the benchmark
 are configured.
 
 ```yaml
+# benchmarks.yml
 cases:
-    - name: "sleep_long"                  # optional, will default to command
-      command: "/bin/sleep"               # command to execute, NO SHELL SCRIPT
-      args: ["5",]                        # list of arguments passed to the command
-      count: 5                            # how often the command is run
+    - name: "sleep_long"     # optional, will default to command
+      command: "/bin/sleep"  # command to execute, NO SHELL SCRIPT
+      args: ["5",]           # list of arguments passed to the command
+      count: 5               # how often the command is run
 ```
 
 ```sh

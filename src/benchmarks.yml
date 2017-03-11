@@ -7,7 +7,7 @@ cases:
       directory: "/home/jonas/Programme/" # default to current dir
       count: 5                                              
 
-    - command: "produce.sh"
+    - command: "false"
 
       #- name: "Fuchs"
       #command: "/bin/sleep"

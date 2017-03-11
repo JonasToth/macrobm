@@ -11,6 +11,8 @@ use std::io;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
 
+use std::time::Duration;
+
 use benchmarking::Report;
 use statistics;
 use statistics::{BMStatistics, Comparison};
@@ -107,11 +109,11 @@ pub fn scheduled_command(name: &str, count: i64) {
 }
 
 /// Gets called whenever one run of a benchmark is finished. Producess progressbar effect
-pub fn finished_program(report: Report, counter: i64, maximum: i64)
+pub fn finished_program(report: &Report, counter: i64, maximum: i64)
 {
     // err_code.success()
-    let name = if report.ecode.success() { Green.bold().paint(report.name) } 
-                       else { Red.bold().paint(report.name) };
+    let name = if report.ecode.success() { Green.bold().paint(&report.name) } 
+                       else { Red.bold().paint(&report.name) };
     let exec_time = report.duration;
 
     clean_line();
@@ -121,6 +123,12 @@ pub fn finished_program(report: Report, counter: i64, maximum: i64)
            Blue.paint(maximum), Blue.paint("]"));
 
     io::stdout().flush().ok().expect("Could not flush stdout");
+}
+
+pub fn report_runinformation(time: Duration, success_count: i32, fail_count: i32) {
+    println!("All benchmarks took {} seconds", Bold.paint(time.as_secs()));
+    println!("{} commands failed", Red.bold().paint(fail_count));
+    println!("{} commands succeeded", Green.bold().paint(success_count));
 }
 
 /// Gets called when all benchmarks were run.
@@ -163,6 +171,6 @@ pub fn write_result_file(filename: &str, results: &BTreeMap<String, Vec<f32>>) {
 
 /// Clean the current line. Used for the progressbar effect.
 fn clean_line() {
-    print!("\r                                                                                                                   ");
+    print!("\r                                                                ");
     io::stdout().flush().ok().expect("Could not flush stdout");
 }
