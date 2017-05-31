@@ -11,3 +11,6 @@ yaml-rust = "*"
 threadpool = "1.0"
 
 stat = "0.2.0"
+
+[build]
+jobs = 8
