@@ -30,7 +30,7 @@ $ macrobm # directory must contain benchmarks.yml
 > Running macro benchmarks 1 threads
 > Scheduling sleep_long for 5 runs
 > Finished running benchmarks!
-> Runs     Min        Avg       Dev      Max             Name        
+> Runs     Min        Avg       Dev      Max             Name
 >   5       5.01       5.01    +-0.0 %    5.01         sleep_long
 $ macrobm report # inspects results.yml, same as report output from bmrun
 $ macrobm diff ground_truth.yml # compare ground_truth.yml with results.yml
@@ -54,20 +54,20 @@ arguments. So you can configure everything outside cases, and just vary with
 your `args` when comparing one program with different configurations.
 
 ```yaml
-count: 30                                          
-command: "../ulf.x"                                
-cases:                                             
-    - name: "hReactor_ct"                          
-      args: ["-f", "hReactor/hReactor_ct.ulf"]     
+count: 30
+command: "../ulf.x"
+cases:
+    - name: "hReactor_ct"
+      args: ["-f", "hReactor/hReactor_ct.ulf"]
                                                    
-    - name: "hReactor_ct_chem"                     
+    - name: "hReactor_ct_chem"
       args: ["-f", "hReactor/hReactor_ct_chem.ulf"]
                                                    
-    - name: "hReactor_eg"                          
-      args: ["-f", "hReactor/hReactor_eg.ulf"]     
+    - name: "hReactor_eg"
+      args: ["-f", "hReactor/hReactor_eg.ulf"]
                                                    
-    - name: "hReactor_uc"                          
-      args: ["-f", "hReactor/hReactor_uc.ulf"]     
+    - name: "hReactor_uc"
+      args: ["-f", "hReactor/hReactor_uc.ulf"]
 ```
 
 This is a configuration file for a numeric code. This evaluates the runtime of a 
@@ -83,12 +83,12 @@ real core count they pretend to have :)
 $ macrobm -o results_j2.yml -j2
 $ macrobm -o results_j6.yml -j6
 $ macrobm diff results_j2.yml results_j6.yml
->                results_j2.yml                 =====================                 results_j6.yml                 
+>                results_j2.yml                 =====================                 results_j6.yml
 > Runs     Min        Max       Dev      Avg             Name            Avg       Dev      Min        Max      Runs 
->  30      0.75       0.81    +-1.1 %    0.77        hReactor_ct         1.03    +-3.6 %    0.97       1.16      30  
->  30      0.63       0.69    +-1.7 %    0.65      hReactor_ct_chem      0.88    +-3.4 %    0.84       0.98      30  
->  30      4.12       5.27    +-3.7 %    4.30        hReactor_eg         6.07    +-2.5 %    5.76       6.56      30  
->  30      3.83       4.03    +-0.9 %    3.90        hReactor_uc         5.69    +-3.2 %    4.89       6.27      30  
+>  30      0.75       0.81    +-1.1 %    0.77        hReactor_ct         1.03    +-3.6 %    0.97       1.16      30
+>  30      0.63       0.69    +-1.7 %    0.65      hReactor_ct_chem      0.88    +-3.4 %    0.84       0.98      30
+>  30      4.12       5.27    +-3.7 %    4.30        hReactor_eg         6.07    +-2.5 %    5.76       6.56      30
+>  30      3.83       4.03    +-0.9 %    3.90        hReactor_uc         5.69    +-3.2 %    4.89       6.27      30
 ```
 
 You can clearly see that running with only two threads results into lower
