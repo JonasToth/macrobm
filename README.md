@@ -90,15 +90,16 @@ $ macrobm diff results_j2.yml results_j6.yml
 
 ## Features Todo
 
-- command to create a configuration as starting point as example to modify - high
-- whowins subcommand to compare many results and find the winner for each category and case - mid
 - check subcommand, that will compare the statistics against a defined
   requirement and return 0 or -1 if the requirements are met or not. usefull
   for ci - mid 
-- Spawn runs until statistics stabilize - low
+- allow environment variables in the configuration that will be set when
+  running the command for each measurement
+- 'who-wins' subcommand to compare many results and find the winner for each category and case - mid
+- Spawn runs until statistics stabilize - low and not easy with current
+  spawning
 - allow groups in the config, hierarchy, until "cases" is found. These are then
   used to configure the runs, the rest are namespaces - low, files are enough i think
-- environment variables must be handled correct - low
 
 
 ## Tests Todo
