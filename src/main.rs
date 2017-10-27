@@ -32,7 +32,6 @@
 //! - custom output file with `-o output.yml`
 //!
 //! ## Reporting
-//! TO BE DONE, perf report like output
 //! TO BE DONE, pipeable output of intersting data (could be used with gnuplot)
 
 
@@ -82,7 +81,7 @@ fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
 }
 
 fn main() {
-    /// ---------------- Configuration for the command line parser
+    // ---------------- Configuration for the command line parser
     let matches = App::new("macrobm")
         .version("v0.3")
         .author("Jonas Toth <jonas.toth@gmail.com>")

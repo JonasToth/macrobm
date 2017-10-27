@@ -67,7 +67,7 @@ pub fn do_benchmark(pool: &ThreadPool,
                 .spawn()
                 .expect("Program start failed!");
             let ecode = process.wait()
-                .expect("Failed to wait on program!");
+                .expect("Failed to wait on program to finish!");
             let execution_time = start_time.elapsed();
             tx.send(Report::new(name, execution_time, ecode)).unwrap();
         });

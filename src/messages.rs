@@ -27,7 +27,7 @@ pub fn intro(worker: usize) {
 
 /// Output run statistics either collected or read in from a result file.
 pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
-    println!("{:^6} {:^10} {:^10} {:^7} {:^10} {:^20}",
+    println!("{:^6} {:^10} {:^10} {:^7} {:^10} {:<20}",
              Blue.bold().paint("Runs"),
              Blue.bold().paint("Min"),
              Blue.bold().paint("Avg"),
@@ -37,7 +37,7 @@ pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
 
     for (bm_name, stat) in stats {
         let reldev = 100. * stat.dev / stat.avg;
-        println!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:^20}",
+        println!("{:^6} {:^10.2} {:^10.2} +-{:^4.1}% {:^10.2} {:<20}",
                  stat.count,
                  stat.min,
                  Bold.paint(stat.avg),
@@ -54,6 +54,8 @@ pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>,
     let comparison = statistics::compare_runs(gt_stats, result_stat, tolerance);
 
     for (bm_name, cmp) in comparison {
+        // gt = Ground Truth
+        // re = Result
         let gt = gt_stats.get(&bm_name).unwrap();
         let re = match result_stat.get(&bm_name) {
             Some(stats) => stats,

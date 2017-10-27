@@ -92,7 +92,7 @@ fn config_from_yaml(doc: &Yaml) -> BTreeMap<String, RunConfig> {
     cfg
 }
 
-/// Parse a yaml-Vector to strings, to use this list of strings as argument to start the wanted
+/// Parse a yaml-Vector to strings, to use this list of strings as argument to start the benchmarked
 /// process.
 fn yaml_args_to_stringlist(args: &Vec<Yaml>) -> Vec<String> {
     let mut result: Vec<String> = Vec::new();

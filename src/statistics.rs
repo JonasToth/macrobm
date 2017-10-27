@@ -83,7 +83,6 @@ pub fn compare_runs(run1: &BTreeMap<String, BMStatistics>,
                           max: best_max,
                       });
     }
-
     result
 }
 
