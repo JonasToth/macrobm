@@ -76,8 +76,6 @@ pub fn do_benchmark(pool: &ThreadPool,
 
 
 // --------------------- tests for the functionality of benchmarking ---------------------------
-
-
 #[test]
 fn test_duration_conversion_to_seconds_float() {
     let d = Duration::from_millis(1500);

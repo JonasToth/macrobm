@@ -4,41 +4,12 @@
 //! The goal of this program is to provide an easy and extensible way to configure and run macro
 //! benchmarks for your programs. Mainly developed to evaluate a numeric code, it wants to be
 //! general :)
-//!
-//! # Example
-//! ## benchmarks.yml - default name for configuration files
-//! cases: - name: "computation"                                    # necessary? maybe command will be substituted command: "/bin/sleep"                                  # needed
-//!      args: ["1",]                                           # arguments passed to the command
-//!      environment: ["LIST=2", "BLA=2"]                       # optional
-//!      directory: "/home/user/bin/project/executiondirectory" # default to current dir
-//!      count: 5                                               # defaults to 1
-//!
-//! ## How to use?
-
-//! - go into directory with the configuration file
-//! - run `macrobm`, results in `results.yml`, with raw data
-//! `Running macro benchmarks 1 threads
-//! Scheduling hReactor_uc for 5 runs
-//! Scheduling produce.sh for 5 runs
-//! Finished running benchmarks.!
-//! ===========================================================================
-//! Avg        Dev      Min     Max     Name
-//! 1.01 0.1%     1.00     1.01 hReactor_uc
-//! 2.00 0.0%     2.00     2.01 produce.sh`
-//!
-//! ## Run configuration
-//! - use many cores with `-jN`, like GNU make
-//! - custom configuration file with `-c filename.yml`
-//! - custom output file with `-o output.yml`
-//!
-//! ## Reporting
-//! TO BE DONE, pipeable output of intersting data (could be used with gnuplot)
-
 
 // command line parser
 extern crate clap;
 use clap::{Arg, App, SubCommand};
 
+// colored output
 extern crate term_painter;
 
 // yaml loading for configuration and result output
@@ -49,6 +20,7 @@ extern crate threadpool;
 use threadpool::ThreadPool;
 use std::sync::mpsc::channel;
 
+// timepoints for time measurements
 use std::time::Instant;
 
 // save results in hashmap
@@ -130,20 +102,20 @@ fn main() {
     else if let Some(sub_diff) = matches.subcommand_matches("diff") {
         let ground_truth_file = sub_diff.value_of("ground_truth").unwrap();
         let result_file = sub_diff.value_of("new_result").unwrap_or("results.yml");
-        let tolerance = sub_diff.value_of("tolerance").unwrap_or("2.");
-        let tolerance = tolerance.parse::<f64>().unwrap();
 
         let gt_stats = statistics::read_result_from_file(ground_truth_file);
         let re_stats = statistics::read_result_from_file(result_file);
 
         messages::intro_diff(ground_truth_file, result_file);
+
+        let tolerance = sub_diff.value_of("tolerance").unwrap_or("2.");
+        let tolerance = tolerance.parse::<f64>().unwrap();
         return_code = report_diff(&gt_stats, &re_stats, tolerance);
     }
     // Default usage, run benchmarks.
     else {
         // ---------------- Read configuration for the benchmarks
         let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
-        // TODO insert global defaults from command line
         let bm_cfg = config::parse_config_file(cfg_file_name);
 
         // --------------- Create place to save all results of the benchmarking
