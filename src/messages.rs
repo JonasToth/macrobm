@@ -69,13 +69,13 @@ pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>,
             Comparison::Equal => (Plain.paint(gt.min), Plain.paint(re.min)),
         };
 
-        let (gt_max, re_max) = match cmp.max { 
+        let (gt_max, re_max) = match cmp.max {
             Comparison::OneIsFaster => (Green.paint(gt.max), Red.paint(re.max)),
             Comparison::TwoIsFaster => (Red.paint(gt.max), Green.paint(re.max)),
             Comparison::Equal => (Plain.paint(gt.max), Plain.paint(re.max)),
         };
 
-        let (gt_avg, re_avg) = match cmp.avg { 
+        let (gt_avg, re_avg) = match cmp.avg {
             Comparison::OneIsFaster => (Green.bold().paint(gt.avg), Red.bold().paint(re.avg)),
             Comparison::TwoIsFaster => (Red.bold().paint(gt.avg), Green.bold().paint(re.avg)),
             Comparison::Equal => (Bold.paint(gt.avg), Bold.paint(re.avg)),

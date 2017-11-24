@@ -130,9 +130,9 @@ fn yaml_stringarray_to_native(strings: &Vec<Yaml>) -> Vec<String> {
 #[test]
 fn test_yaml_args_to_strings() {
     let yaml_args = vec![Yaml::Real("0.234".to_string()),
-                         Yaml::Integer(15),
-                         Yaml::String("hallo".to_string()),
-                         Yaml::Null];
+    Yaml::Integer(15),
+    Yaml::String("hallo".to_string()),
+    Yaml::Null];
     let strings = yaml_args_to_stringlist(&yaml_args);
 
     assert_eq!(strings.len(), 3);
@@ -291,9 +291,9 @@ fn test_cfg_realworld1() {
     assert_eq!(cfg["hReactor_ct_chem"].name, "hReactor_ct_chem");
     let expected_args = vec!["-f".to_string(), "hReactor/hReactor_ct_chem.ulf".to_string()];
     assert_eq!(cfg["hReactor_ct_chem"].args[0].to_string(),
-               expected_args[0]);
+    expected_args[0]);
     assert_eq!(cfg["hReactor_ct_chem"].args[1].to_string(),
-               expected_args[1]);
+    expected_args[1]);
     assert_eq!(cfg["hReactor_ct_chem"].count, 30);
 
     assert_eq!(cfg["hReactor_eg"].command, "../ulf.x");

@@ -40,51 +40,51 @@ pub enum Comparison {
 /// Postprocess the results of all benchmark runs. Currently only prints a table with most
 /// interesting information.
 pub fn process_results(run_statistic: &BTreeMap<String, Vec<f32>>)
-                       -> BTreeMap<String, BMStatistics> {
-    let mut result = BTreeMap::new();
+    -> BTreeMap<String, BMStatistics> {
+        let mut result = BTreeMap::new();
 
-    for (bm_name, times) in run_statistic {
-        assert!(times.len() > 0);
-        let (min, _, max, _) = minmax(times);
-        result.insert(bm_name.clone(),
-                      BMStatistics {
-                          avg: mean(times),
-                          min: min,
-                          max: max,
-                          dev: absdev(times),
-                          count: times.len(),
-                      });
+        for (bm_name, times) in run_statistic {
+            assert!(times.len() > 0);
+            let (min, _, max, _) = minmax(times);
+            result.insert(bm_name.clone(),
+            BMStatistics {
+                avg: mean(times),
+                min: min,
+                max: max,
+                dev: absdev(times),
+                count: times.len(),
+            });
+        }
+        result
     }
-    result
-}
 
 /// Compare two runs of the same benchmark against each other and store which one one (with the
 /// given percantage of tolerance for equality).
 pub fn compare_runs(run1: &BTreeMap<String, BMStatistics>,
                     run2: &BTreeMap<String, BMStatistics>,
                     tolerance: f64)
-                    -> BTreeMap<String, ComparisonResult> {
-    let mut result = BTreeMap::new();
+    -> BTreeMap<String, ComparisonResult> {
+        let mut result = BTreeMap::new();
 
-    for bm_name in run1.keys() {
-        let stat1 = run1.get(bm_name).unwrap();
-        let stat2 = match run2.get(bm_name) {
-            Some(stats) => stats,
-            None => continue,
-        };
-        let best_min = compare_single(stat1.min, stat2.min, tolerance);
-        let best_max = compare_single(stat1.max, stat2.max, tolerance);
-        let best_avg = compare_single(stat1.avg, stat2.avg, tolerance);
+        for bm_name in run1.keys() {
+            let stat1 = run1.get(bm_name).unwrap();
+            let stat2 = match run2.get(bm_name) {
+                Some(stats) => stats,
+                None => continue,
+            };
+            let best_min = compare_single(stat1.min, stat2.min, tolerance);
+            let best_max = compare_single(stat1.max, stat2.max, tolerance);
+            let best_avg = compare_single(stat1.avg, stat2.avg, tolerance);
 
-        result.insert(bm_name.to_string(),
-                      ComparisonResult {
-                          avg: best_avg,
-                          min: best_min,
-                          max: best_max,
-                      });
+            result.insert(bm_name.to_string(),
+            ComparisonResult {
+                avg: best_avg,
+                min: best_min,
+                max: best_max,
+            });
+        }
+        result
     }
-    result
-}
 
 /// Compare two metrics for equality, tol(0. - 100.) is given in percent!
 fn compare_single(value1: f64, value2: f64, tol: f64) -> Comparison {
@@ -163,41 +163,41 @@ fn test_compare_runs() {
     let run1 = {
         let mut x = BTreeMap::<String, _>::new();
         x.insert("sleep".to_string(),
-                 BMStatistics {
-                     avg: 15.3,
-                     min: 15.1,
-                     max: 15.5,
-                     dev: 0.005,
-                     count: 100,
-                 });
+        BMStatistics {
+            avg: 15.3,
+            min: 15.1,
+            max: 15.5,
+            dev: 0.005,
+            count: 100,
+        });
         x.insert("not_in_other".to_string(),
-                 BMStatistics {
-                     avg: 1.,
-                     min: 0.9,
-                     max: 1.6,
-                     dev: 0.2,
-                     count: 3,
-                 });
+        BMStatistics {
+            avg: 1.,
+            min: 0.9,
+            max: 1.6,
+            dev: 0.2,
+            count: 3,
+        });
         x
     };
     let run2 = {
         let mut x = BTreeMap::new();
         x.insert("sleep".to_string(),
-                 BMStatistics {
-                     avg: 16.3,
-                     min: 16.1,
-                     max: 16.5,
-                     dev: 0.005,
-                     count: 100,
-                 });
+        BMStatistics {
+            avg: 16.3,
+            min: 16.1,
+            max: 16.5,
+            dev: 0.005,
+            count: 100,
+        });
         x.insert("some_unused".to_string(),
-                 BMStatistics {
-                     avg: 1.,
-                     min: 0.9,
-                     max: 1.6,
-                     dev: 0.2,
-                     count: 3,
-                 });
+        BMStatistics {
+            avg: 1.,
+            min: 0.9,
+            max: 1.6,
+            dev: 0.2,
+            count: 3,
+        });
         x
     };
 
