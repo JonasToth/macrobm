@@ -5,7 +5,7 @@ use stat::{mean, minmax, absdev};
 use std::collections::BTreeMap;
 
 use config::file_to_yaml;
-use yaml_rust::Yaml;
+use yaml_rust::{Yaml, YamlLoader};
 
 
 #[derive(Debug)]
@@ -318,4 +318,24 @@ fn test_relative_variance() {
     ez_stats.avg = 100.;
     ez_stats.dev = 1.;
     assert_eq!(calc_relative_variance(&ez_stats), 1.);
+}
+
+#[test]
+fn test_read_result() {
+    let result_str = "---
+    - program1:
+      - 0.9
+      - 1.1
+      - 1.2
+      - 1.3
+      - 1.5";
+    let yaml = YamlLoader::load_from_str(result_str).unwrap();
+
+    let result = results_from_yaml(&yaml[0]);
+
+    assert_eq!(result.get("program1").unwrap()[0], 0.9);
+    assert_eq!(result.get("program1").unwrap()[1], 1.1);
+    assert_eq!(result.get("program1").unwrap()[2], 1.2);
+    assert_eq!(result.get("program1").unwrap()[3], 1.3);
+    assert_eq!(result.get("program1").unwrap()[4], 1.5);
 }

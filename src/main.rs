@@ -66,18 +66,19 @@ mod benchmarking;
 // statistics for the durations
 mod statistics;
 
-fn report_data(times: &BTreeMap<String, Vec<f32>>) {
+fn report_data(times: &BTreeMap<String, Vec<f32>>) -> i32 {
     let stats = statistics::process_results(times);
-    messages::report_statistics(&stats);
+
+    messages::report_statistics(&stats)
 }
 
 fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
                results: &BTreeMap<String, Vec<f32>>,
-               tolerance: f64) {
+               tolerance: f64) -> i32 {
     let gt_stats = statistics::process_results(ground_truth);
     let re_stats = statistics::process_results(results);
 
-    messages::report_diff(&gt_stats, &re_stats, tolerance);
+    messages::report_diff(&gt_stats, &re_stats, tolerance)
 }
 
 fn main() {
@@ -116,13 +117,14 @@ fn main() {
                          .takes_value(true)
                          .help("Modify tolerance in percent, to consider values as equal. Default is 2%")))
         .get_matches();
+    let return_code: i32;
 
     // Handle subcommand for reporting.
     if let Some(sub_report) = matches.subcommand_matches("report") {
         let result_file = sub_report.value_of("input").unwrap_or("results.yml");
         let bm_statistics = statistics::read_result_from_file(result_file);
 
-        report_data(&bm_statistics);
+        return_code = report_data(&bm_statistics);
     }
     // Compare different runs between each other
     else if let Some(sub_diff) = matches.subcommand_matches("diff") {
@@ -135,7 +137,7 @@ fn main() {
         let re_stats = statistics::read_result_from_file(result_file);
 
         messages::intro_diff(ground_truth_file, result_file);
-        report_diff(&gt_stats, &re_stats, tolerance);
+        return_code = report_diff(&gt_stats, &re_stats, tolerance);
     }
     // Default usage, run benchmarks.
     else {
@@ -201,5 +203,10 @@ fn main() {
 
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");
         messages::write_result_file(&result_file, &bm_statistics);
+
+        return_code = 0;
     }
+
+    // Return the code for the program, to signal fail or success.
+    std::process::exit(return_code);
 }

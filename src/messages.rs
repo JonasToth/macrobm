@@ -26,7 +26,7 @@ pub fn intro(worker: usize) {
 }
 
 /// Output run statistics either collected or read in from a result file.
-pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
+pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) -> i32 {
     println!("{:^6} {:^10} {:^10} {:^7} {:^10} {:<20}",
              Blue.bold().paint("Runs"),
              Blue.bold().paint("Min"),
@@ -45,12 +45,14 @@ pub fn report_statistics(stats: &BTreeMap<String, BMStatistics>) {
                  stat.max,
                  Bold.paint(bm_name));
     }
+
+    return 0;
 }
 
 /// Print out how two runs differ. With nice coloring where changes are.
 pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>,
                    result_stat: &BTreeMap<String, BMStatistics>,
-                   tolerance: f64) {
+                   tolerance: f64) -> i32 {
     let comparison = statistics::compare_runs(gt_stats, result_stat, tolerance);
 
     for (bm_name, cmp) in comparison {
@@ -98,6 +100,8 @@ pub fn report_diff(gt_stats: &BTreeMap<String, BMStatistics>,
                re.count);
         println!("");
     }
+
+    return 0;
 }
 
 pub fn intro_diff(gt_filename: &str, res_filename: &str) {
