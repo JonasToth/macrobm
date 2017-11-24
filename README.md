@@ -93,20 +93,10 @@ $ macrobm diff results_j2.yml results_j6.yml
 - check subcommand, that will compare the statistics against a defined
   requirement and return 0 or -1 if the requirements are met or not. usefull
   for ci - mid 
+
 - allow environment variables in the configuration that will be set when
   running the command for each measurement
 - 'who-wins' subcommand to compare many results and find the winner for each category and case - mid
+
 - Spawn runs until statistics stabilize - low and not easy with current
   spawning
-- allow groups in the config, hierarchy, until "cases" is found. These are then
-  used to configure the runs, the rest are namespaces - low, files are enough i think
-
-
-## Tests Todo
-
-relevance in the given order
-
-- loading results give correct results
-
-## Way later
-- submit subcommand to build a database of historic data
