@@ -21,14 +21,9 @@ extern crate yaml_rust;
 // link with statistics library
 extern crate stat;
 
-// Sender and Receiver live on the channel.
-use std::sync::mpsc::channel;
 
-// timepoints for time measurements
-use std::time::Instant;
-
-// save results in hashmap
-use std::collections::BTreeMap;
+// Toplevel operations are wrapped here.
+mod wrappers;
 
 // All messages that are reportable.
 mod messages;
@@ -38,21 +33,6 @@ mod config;
 mod benchmarking;
 // statistics for the durations
 mod statistics;
-
-fn report_data(times: &BTreeMap<String, Vec<f32>>) -> i32 {
-    let stats = statistics::process_results(times);
-
-    messages::report_statistics(&stats)
-}
-
-fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
-               results: &BTreeMap<String, Vec<f32>>,
-               tolerance: f64) -> i32 {
-    let gt_stats = statistics::process_results(ground_truth);
-    let re_stats = statistics::process_results(results);
-
-    messages::report_diff(&gt_stats, &re_stats, tolerance)
-}
 
 fn main() {
     // ---------------- Configuration for the command line parser
@@ -94,61 +74,34 @@ fn main() {
     // Handle subcommand for reporting.
     if let Some(sub_report) = matches.subcommand_matches("report") {
         let result_file = sub_report.value_of("input")
-                                    .unwrap_or("results.yml");
-        let bm_statistics = statistics::read_result_from_file(result_file);
+            .unwrap_or("results.yml");
 
-        let return_code = report_data(&bm_statistics);
-
+        let return_code = wrappers::reporting_process(&result_file);
         std::process::exit(return_code);
     }
     // Compare different runs between each other
     else if let Some(sub_diff) = matches.subcommand_matches("diff") {
-        let ground_truth_file = sub_diff.value_of("ground_truth").unwrap();
+        let ground_truth = sub_diff.value_of("ground_truth").unwrap();
         let result_file = sub_diff.value_of("new_result")
-                                  .unwrap_or("results.yml");
-
-        let gt_stats = statistics::read_result_from_file(ground_truth_file);
-        let re_stats = statistics::read_result_from_file(result_file);
-
-        messages::intro_diff(ground_truth_file, result_file);
-
+            .unwrap_or("results.yml");
         let tolerance = sub_diff.value_of("tolerance").unwrap_or("2.")
-                        .parse::<f64>().unwrap();
-        let return_code = report_diff(&gt_stats, &re_stats, tolerance);
+            .parse::<f64>().unwrap();
 
+        let return_code = wrappers::diff_process(ground_truth, result_file,
+                                                 tolerance);
         std::process::exit(return_code);
     }
     // Default usage, run benchmarks.
     else {
         // ---------------- Read configuration for the benchmarks
-        let cfg_file_name = matches.value_of("config")
+        let cfg_file = matches.value_of("config")
             .unwrap_or("benchmarks.yml");
-        let bm_cfg = config::parse_config_file(cfg_file_name);
-
-        // --------------- Configure multithreading for the benchmarks
         let n_workers = matches.value_of("jobs").unwrap_or("1")
             .parse::<usize>().unwrap();
-
-        let (tx, rx) = channel();
-
-        // start timer to measure overall runtime
-        let start_all = Instant::now();
-
-        // Schedule all wanted commands n times in a threadpool of n_workers
-        // threads.
-        let scheduled = benchmarking::schedule_benchmarks(bm_cfg, n_workers, tx);
-        // Wait untill all scheduled commands are done and return the results.
-        let (stats, successes, fails) = benchmarking::collect_results(scheduled, rx);
-
-        // report the time and state of all benchmarks
-        messages::report_runinformation(start_all.elapsed(), successes, fails);
-
-        // report detailed benchmark statistics for each case
-        report_data(&stats);
-
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");
-        messages::write_result_file(&result_file, &stats);
 
-        std::process::exit(0);
+        let return_code = wrappers::benchmarking_process(&cfg_file, n_workers,
+                                                         result_file);
+        std::process::exit(return_code);
     }
 }
