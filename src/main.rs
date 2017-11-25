@@ -18,7 +18,7 @@ extern crate yaml_rust;
 // threading
 extern crate threadpool;
 use threadpool::ThreadPool;
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{Sender, channel};
 
 // timepoints for time measurements
 use std::time::Instant;
@@ -52,6 +52,22 @@ fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
 
     messages::report_diff(&gt_stats, &re_stats, tolerance)
 }
+
+fn schedule_benchmarks(bm_cfg: BTreeMap<String, benchmarking::RunConfig>,
+                       pool: ThreadPool,
+                       tx: Sender<benchmarking::Report>)
+    -> (i64, BTreeMap<String, Vec<f32>>) {
+        let mut scheduled = 0;
+        let mut bm_statistics = BTreeMap::new();
+
+        for (name, config) in &bm_cfg {
+            messages::scheduled_command(&name, config.count);
+            bm_statistics.insert(name.to_string(), Vec::<f32>::new());
+            benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
+            scheduled += config.count;
+        }
+        (scheduled, bm_statistics)
+    }
 
 fn main() {
     // ---------------- Configuration for the command line parser
@@ -118,12 +134,10 @@ fn main() {
         let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
         let bm_cfg = config::parse_config_file(cfg_file_name);
 
-        // --------------- Create place to save all results of the benchmarking
-        let mut bm_statistics = BTreeMap::new();
-
         // --------------- Configure multithreading for the benchmarks
         let n_workers = matches.value_of("jobs").unwrap_or("1");
         let n_workers = n_workers.parse::<usize>().unwrap();
+
         let pool = ThreadPool::new(n_workers);
         let (tx, rx) = channel();
 
@@ -134,13 +148,7 @@ fn main() {
         let start_all = Instant::now();
 
         // --------------- Schedule all wanted commands n times
-        let mut scheduled = 0;
-        for (name, config) in &bm_cfg {
-            messages::scheduled_command(&name, config.count);
-            bm_statistics.insert(name.to_string(), Vec::<f32>::new());
-            benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
-            scheduled += config.count;
-        }
+        let (scheduled, mut stats) = schedule_benchmarks(bm_cfg, pool, tx);
 
         // ------------- Wait for all bm to finish and notice the user about the state of the program.
         let mut successes = 0;
@@ -149,7 +157,7 @@ fn main() {
         for finished in 0..scheduled {
             let report = rx.recv().unwrap();
             // process report
-            match bm_statistics.get_mut(&report.name) {
+            match stats.get_mut(&report.name) {
                 Some(ref mut vec) => vec.push(report.duration),
                 None => (),
             };
@@ -171,10 +179,10 @@ fn main() {
         messages::report_runinformation(overall_time, successes, fails);
 
         // report detailed benchmark statistics for each case
-        report_data(&bm_statistics);
+        report_data(&stats);
 
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");
-        messages::write_result_file(&result_file, &bm_statistics);
+        messages::write_result_file(&result_file, &stats);
 
         return_code = 0;
     }
