@@ -51,56 +51,6 @@ fn convert_duration_to_seconds(dur: Duration) -> f32 {
     dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1000000000.
 }
 
-/// This function schedules all benchmarks that are supposed to run
-/// several times and distributes them over `n_workers` threads.
-pub fn schedule_benchmarks(bm_cfg: BTreeMap<String, RunConfig>,
-                           n_workers: usize,
-                           tx: Sender<Report>
-                          ) -> i64 {
-    // --------------- Banner Message
-    messages::intro(n_workers);
-
-    let pool = ThreadPool::new(n_workers);
-    let mut scheduled = 0;
-
-    for (name, config) in &bm_cfg {
-        messages::scheduled_command(&name, config.count);
-        do_benchmark(&pool, &name, tx.clone(), config);
-        scheduled += config.count;
-    }
-    scheduled
-}
-
-/// Collect all results for the benchmarks that were scheduled and return
-/// the statistical data.
-pub fn collect_results(scheduled: i64, rx: Receiver<Report>
-                      ) -> (BTreeMap<String, Vec<f32>>, i64, i64) {
-    let mut stats = BTreeMap::<String, Vec<f32>>::new();
-
-    // ------------- Wait for all bm to finish and notice the user about the state of the program.
-    let mut successes = 0;
-    let mut fails = 0;
-
-    for finished in 0..scheduled {
-        let report = rx.recv().unwrap();
-
-        // process report
-        stats.entry(report.name.clone()).or_insert(Vec::<f32>::new())
-            .push(report.duration);
-
-        // output information
-        messages::finished_program(&report, finished + 1, scheduled);
-
-        if report.ecode.success() {
-            successes += 1
-        } else {
-            fails += 1
-        }
-    }
-    messages::finished();
-    (stats, successes, fails)
-}
-
 /// Start all benchmarks in a threadpool and configure a channel to receive a Report for every
 /// finished run.
 fn do_benchmark(pool: &ThreadPool,
