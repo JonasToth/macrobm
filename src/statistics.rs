@@ -5,7 +5,7 @@ use stat::{mean, minmax, absdev};
 use std::collections::BTreeMap;
 
 use config::file_to_yaml;
-use yaml_rust::{Yaml};
+use yaml_rust::Yaml;
 
 
 #[derive(Debug)]
@@ -322,6 +322,7 @@ fn test_relative_variance() {
 
 #[test]
 fn test_read_result() {
+    use yaml_rust::YamlLoader;
     let result_str = "---
     - program1:
       - 0.9
