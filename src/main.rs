@@ -12,13 +12,17 @@ use clap::{Arg, App, SubCommand};
 // colored output
 extern crate term_painter;
 
+// Parallel benchmarking
+extern crate threadpool;
+
 // yaml loading for configuration and result output
 extern crate yaml_rust;
 
-// threading
-extern crate threadpool;
-use threadpool::ThreadPool;
-use std::sync::mpsc::{Sender, Receiver, channel};
+// link with statistics library
+extern crate stat;
+
+// Sender and Receiver live on the channel.
+use std::sync::mpsc::channel;
 
 // timepoints for time measurements
 use std::time::Instant;
@@ -26,10 +30,7 @@ use std::time::Instant;
 // save results in hashmap
 use std::collections::BTreeMap;
 
-// link with statistics library
-extern crate stat;
-
-// custom functions written by me, for code clearity
+// All messages that are reportable.
 mod messages;
 // parse the yaml configuration files and build the internal data structures
 mod config;
@@ -53,57 +54,10 @@ fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
     messages::report_diff(&gt_stats, &re_stats, tolerance)
 }
 
-fn schedule_benchmarks(bm_cfg: BTreeMap<String, benchmarking::RunConfig>,
-                       n_workers: usize,
-                       tx: Sender<benchmarking::Report>
-                      ) -> i64 {
-    // --------------- Banner Message
-    messages::intro(n_workers);
-
-    let pool = ThreadPool::new(n_workers);
-    let mut scheduled = 0;
-
-    for (name, config) in &bm_cfg {
-        messages::scheduled_command(&name, config.count);
-        benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
-        scheduled += config.count;
-    }
-    scheduled
-}
-
-fn collect_results(scheduled: i64, rx: Receiver<benchmarking::Report>
-                  ) -> (BTreeMap<String, Vec<f32>>, i64, i64) {
-    let mut stats = BTreeMap::<String, Vec<f32>>::new();
-
-    // ------------- Wait for all bm to finish and notice the user about the state of the program.
-    let mut successes = 0;
-    let mut fails = 0;
-
-    for finished in 0..scheduled {
-        let report = rx.recv().unwrap();
-
-        // process report
-        stats.entry(report.name.clone()).or_insert(Vec::<f32>::new())
-             .push(report.duration);
-
-        // output information
-        messages::finished_program(&report, finished + 1, scheduled);
-
-        if report.ecode.success() {
-            successes += 1
-        } else {
-            fails += 1
-        }
-    }
-
-    messages::finished();
-    (stats, successes, fails)
-}
-
 fn main() {
     // ---------------- Configuration for the command line parser
     let matches = App::new("macrobm")
-        .version("v0.3")
+        .version("v0.4")
         .author("Jonas Toth <jonas.toth@gmail.com>")
         .about("Times execution time of commands and produces statistics.")
         .arg(Arg::with_name("config")
@@ -136,28 +90,33 @@ fn main() {
                          .takes_value(true)
                          .help("Modify tolerance in percent, to consider values as equal. Default is 2%")))
         .get_matches();
-    let return_code: i32;
 
     // Handle subcommand for reporting.
     if let Some(sub_report) = matches.subcommand_matches("report") {
-        let result_file = sub_report.value_of("input").unwrap_or("results.yml");
+        let result_file = sub_report.value_of("input")
+                                    .unwrap_or("results.yml");
         let bm_statistics = statistics::read_result_from_file(result_file);
 
-        return_code = report_data(&bm_statistics);
+        let return_code = report_data(&bm_statistics);
+
+        std::process::exit(return_code);
     }
     // Compare different runs between each other
     else if let Some(sub_diff) = matches.subcommand_matches("diff") {
         let ground_truth_file = sub_diff.value_of("ground_truth").unwrap();
-        let result_file = sub_diff.value_of("new_result").unwrap_or("results.yml");
+        let result_file = sub_diff.value_of("new_result")
+                                  .unwrap_or("results.yml");
 
         let gt_stats = statistics::read_result_from_file(ground_truth_file);
         let re_stats = statistics::read_result_from_file(result_file);
 
         messages::intro_diff(ground_truth_file, result_file);
 
-        let tolerance = sub_diff.value_of("tolerance").unwrap_or("2.");
-        let tolerance = tolerance.parse::<f64>().unwrap();
-        return_code = report_diff(&gt_stats, &re_stats, tolerance);
+        let tolerance = sub_diff.value_of("tolerance").unwrap_or("2.")
+                        .parse::<f64>().unwrap();
+        let return_code = report_diff(&gt_stats, &re_stats, tolerance);
+
+        std::process::exit(return_code);
     }
     // Default usage, run benchmarks.
     else {
@@ -177,9 +136,9 @@ fn main() {
 
         // Schedule all wanted commands n times in a threadpool of n_workers
         // threads.
-        let scheduled = schedule_benchmarks(bm_cfg, n_workers, tx);
+        let scheduled = benchmarking::schedule_benchmarks(bm_cfg, n_workers, tx);
         // Wait untill all scheduled commands are done and return the results.
-        let (stats, successes, fails) = collect_results(scheduled, rx);
+        let (stats, successes, fails) = benchmarking::collect_results(scheduled, rx);
 
         // report the time and state of all benchmarks
         messages::report_runinformation(start_all.elapsed(), successes, fails);
@@ -190,9 +149,6 @@ fn main() {
         let result_file = matches.value_of("outfile").unwrap_or("results.yml");
         messages::write_result_file(&result_file, &stats);
 
-        return_code = 0;
+        std::process::exit(0);
     }
-
-    // Return the code for the program, to signal fail or success.
-    std::process::exit(return_code);
 }

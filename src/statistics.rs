@@ -5,7 +5,7 @@ use stat::{mean, minmax, absdev};
 use std::collections::BTreeMap;
 
 use config::file_to_yaml;
-use yaml_rust::{Yaml, YamlLoader};
+use yaml_rust::{Yaml};
 
 
 #[derive(Debug)]
