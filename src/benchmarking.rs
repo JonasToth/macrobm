@@ -1,17 +1,12 @@
 /// Logic and functionality to actually perform the benchmarks.
 ///
 
-use messages;
-
-// results and configuration
-use std::collections::BTreeMap;
-
 // subprocesses to call the command we want to measure
 use std::process::{Command, Stdio, ExitStatus};
 
 // parallelism
 use threadpool::ThreadPool;
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc::Sender;
 
 // time measurements
 use std::time::{Instant, Duration};
@@ -53,7 +48,7 @@ fn convert_duration_to_seconds(dur: Duration) -> f32 {
 
 /// Start all benchmarks in a threadpool and configure a channel to receive a Report for every
 /// finished run.
-fn do_benchmark(pool: &ThreadPool,
+pub fn do_benchmark(pool: &ThreadPool,
                 name: &str,
                 channel_trans: Sender<Report>,
                 config: &RunConfig) {

@@ -7,7 +7,8 @@ use benchmarking;
 use statistics;
 
 // Sender and Receiver live on the channel.
-use std::sync::mpsc::channel;
+use threadpool::ThreadPool;
+use std::sync::mpsc::{Sender, Receiver, channel};
 
 // timepoints for time measurements
 use std::time::Instant;
@@ -30,9 +31,9 @@ pub fn benchmarking_process(cfg_file: &str, threads: usize,
 
     // Schedule all wanted commands n times in a threadpool of n_workers
     // threads.
-    let scheduled = benchmarking::schedule_benchmarks(bm_cfg, threads, tx);
+    let scheduled = schedule_benchmarks(bm_cfg, threads, tx);
     // Wait untill all scheduled commands are done and return the results.
-    let (stats, successes, fails) = benchmarking::collect_results(scheduled, rx);
+    let (stats, successes, fails) = collect_results(scheduled, rx);
 
     // report the time and state of all benchmarks
     messages::report_runinformation(start_all.elapsed(), successes, fails);
@@ -79,9 +80,9 @@ fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
 
 /// This function schedules all benchmarks that are supposed to run
 /// several times and distributes them over `n_workers` threads.
-fn schedule_benchmarks(bm_cfg: BTreeMap<String, RunConfig>,
+fn schedule_benchmarks(bm_cfg: BTreeMap<String, benchmarking::RunConfig>,
                        n_workers: usize,
-                       tx: Sender<Report>
+                       tx: Sender<benchmarking::Report>
                       ) -> i64 {
     // --------------- Banner Message
     messages::intro(n_workers);
@@ -99,7 +100,7 @@ fn schedule_benchmarks(bm_cfg: BTreeMap<String, RunConfig>,
 
 /// Collect all results for the benchmarks that were scheduled and return
 /// the statistical data.
-fn collect_results(scheduled: i64, rx: Receiver<Report>
+fn collect_results(scheduled: i64, rx: Receiver<benchmarking::Report>
                   ) -> (BTreeMap<String, Vec<f32>>, i64, i64) {
     let mut stats = BTreeMap::<String, Vec<f32>>::new();
 
