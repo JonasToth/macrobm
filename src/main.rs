@@ -18,7 +18,7 @@ extern crate yaml_rust;
 // threading
 extern crate threadpool;
 use threadpool::ThreadPool;
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::{Sender, Receiver, channel};
 
 // timepoints for time measurements
 use std::time::Instant;
@@ -54,20 +54,51 @@ fn report_diff(ground_truth: &BTreeMap<String, Vec<f32>>,
 }
 
 fn schedule_benchmarks(bm_cfg: BTreeMap<String, benchmarking::RunConfig>,
-                       pool: ThreadPool,
-                       tx: Sender<benchmarking::Report>)
-    -> (i64, BTreeMap<String, Vec<f32>>) {
-        let mut scheduled = 0;
-        let mut bm_statistics = BTreeMap::new();
+                       n_workers: usize,
+                       tx: Sender<benchmarking::Report>
+                      ) -> i64 {
+    // --------------- Banner Message
+    messages::intro(n_workers);
 
-        for (name, config) in &bm_cfg {
-            messages::scheduled_command(&name, config.count);
-            bm_statistics.insert(name.to_string(), Vec::<f32>::new());
-            benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
-            scheduled += config.count;
-        }
-        (scheduled, bm_statistics)
+    let pool = ThreadPool::new(n_workers);
+    let mut scheduled = 0;
+
+    for (name, config) in &bm_cfg {
+        messages::scheduled_command(&name, config.count);
+        benchmarking::do_benchmark(&pool, &name, tx.clone(), config);
+        scheduled += config.count;
     }
+    scheduled
+}
+
+fn collect_results(scheduled: i64, rx: Receiver<benchmarking::Report>
+                  ) -> (BTreeMap<String, Vec<f32>>, i64, i64) {
+    let mut stats = BTreeMap::<String, Vec<f32>>::new();
+
+    // ------------- Wait for all bm to finish and notice the user about the state of the program.
+    let mut successes = 0;
+    let mut fails = 0;
+
+    for finished in 0..scheduled {
+        let report = rx.recv().unwrap();
+
+        // process report
+        stats.entry(report.name.clone()).or_insert(Vec::<f32>::new())
+             .push(report.duration);
+
+        // output information
+        messages::finished_program(&report, finished + 1, scheduled);
+
+        if report.ecode.success() {
+            successes += 1
+        } else {
+            fails += 1
+        }
+    }
+
+    messages::finished();
+    (stats, successes, fails)
+}
 
 fn main() {
     // ---------------- Configuration for the command line parser
@@ -131,52 +162,27 @@ fn main() {
     // Default usage, run benchmarks.
     else {
         // ---------------- Read configuration for the benchmarks
-        let cfg_file_name = matches.value_of("config").unwrap_or("benchmarks.yml");
+        let cfg_file_name = matches.value_of("config")
+            .unwrap_or("benchmarks.yml");
         let bm_cfg = config::parse_config_file(cfg_file_name);
 
         // --------------- Configure multithreading for the benchmarks
-        let n_workers = matches.value_of("jobs").unwrap_or("1");
-        let n_workers = n_workers.parse::<usize>().unwrap();
+        let n_workers = matches.value_of("jobs").unwrap_or("1")
+            .parse::<usize>().unwrap();
 
-        let pool = ThreadPool::new(n_workers);
         let (tx, rx) = channel();
-
-        // --------------- Banner Message
-        messages::intro(n_workers);
 
         // start timer to measure overall runtime
         let start_all = Instant::now();
 
-        // --------------- Schedule all wanted commands n times
-        let (scheduled, mut stats) = schedule_benchmarks(bm_cfg, pool, tx);
-
-        // ------------- Wait for all bm to finish and notice the user about the state of the program.
-        let mut successes = 0;
-        let mut fails = 0;
-
-        for finished in 0..scheduled {
-            let report = rx.recv().unwrap();
-            // process report
-            match stats.get_mut(&report.name) {
-                Some(ref mut vec) => vec.push(report.duration),
-                None => (),
-            };
-            // output information
-            messages::finished_program(&report, finished + 1, scheduled);
-
-            if report.ecode.success() {
-                successes += 1
-            } else {
-                fails += 1
-            }
-        }
-        messages::finished();
-
-        // stop timer
-        let overall_time = start_all.elapsed();
+        // Schedule all wanted commands n times in a threadpool of n_workers
+        // threads.
+        let scheduled = schedule_benchmarks(bm_cfg, n_workers, tx);
+        // Wait untill all scheduled commands are done and return the results.
+        let (stats, successes, fails) = collect_results(scheduled, rx);
 
         // report the time and state of all benchmarks
-        messages::report_runinformation(overall_time, successes, fails);
+        messages::report_runinformation(start_all.elapsed(), successes, fails);
 
         // report detailed benchmark statistics for each case
         report_data(&stats);

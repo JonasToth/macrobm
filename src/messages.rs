@@ -167,7 +167,7 @@ pub fn finished_program(report: &Report, counter: i64, maximum: i64) {
     io::stdout().flush().ok().expect("Could not flush stdout");
 }
 
-pub fn report_runinformation(time: Duration, success_count: i32, fail_count: i32) {
+pub fn report_runinformation(time: Duration, success_count: i64, fail_count: i64) {
     println!("All benchmarks took {} seconds", Bold.paint(time.as_secs()));
     println!("{} commands failed", Red.bold().paint(fail_count));
     println!("{} commands succeeded", Green.bold().paint(success_count));
