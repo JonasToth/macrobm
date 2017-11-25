@@ -86,18 +86,6 @@ pub fn compare_runs(run1: &BTreeMap<String, BMStatistics>,
         result
     }
 
-/// Compare two metrics for equality, tol(0. - 100.) is given in percent!
-fn compare_single(value1: f64, value2: f64, tol: f64) -> Comparison {
-    assert!(value1 != 0.);
-    if (value1 - value2).abs() / value1.abs() <= (tol / 100.) {
-        return Comparison::Equal;
-    } else if value1 < value2 {
-        return Comparison::OneIsFaster;
-    } else {
-        return Comparison::TwoIsFaster;
-    }
-}
-
 /// Calculate the procentual variance for that case. 100. * stddev / avg
 pub fn calc_relative_variance(statistics: &BMStatistics) -> f64 {
     100. * statistics.dev / statistics.avg
@@ -128,6 +116,19 @@ fn results_from_yaml(doc: &Yaml) -> BTreeMap<String, Vec<f32>> {
     }
     result
 }
+
+/// Compare two metrics for equality, tol(0. - 100.) is given in percent!
+fn compare_single(value1: f64, value2: f64, tol: f64) -> Comparison {
+    assert!(value1 != 0.);
+    if (value1 - value2).abs() / value1.abs() <= (tol / 100.) {
+        return Comparison::Equal;
+    } else if value1 < value2 {
+        return Comparison::OneIsFaster;
+    } else {
+        return Comparison::TwoIsFaster;
+    }
+}
+
 
 
 // ------------------------------- All tests for the statistic functionality -------------------
