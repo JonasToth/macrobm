@@ -6,7 +6,7 @@ authors = ["Jonas Toth <jonas.toth@gmail.com>"]
 [dependencies]
 clap = "2"
 term-painter = "0.2"
-yaml-rust = "0.4"
+yaml-rust = "0.3"
 
 threadpool = "1.0"
 
