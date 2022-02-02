@@ -205,7 +205,7 @@ pub fn write_result_file(filename: &str, results: &BTreeMap<String, Vec<f32>>) {
             Ok(_) => (),
             Err(e) => {
                 println!("Error while creating the result file!");
-                panic!(e);
+                panic!("{:?}", e);
             }
         }
     }

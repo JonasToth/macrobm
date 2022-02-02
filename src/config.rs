@@ -15,7 +15,7 @@ pub fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
         Ok(file) => file,
         Err(e) => {
             messages::invalid_filename(file_name);
-            panic!("{}", e);
+            panic!("{:?}", e);
         }
     };
 
@@ -25,7 +25,7 @@ pub fn file_to_yaml(file_name: &str) -> Vec<Yaml> {
         Ok(vec) => vec,
         Err(e) => {
             messages::invalid_yaml(file_name);
-            panic!(e);
+            panic!("{:?}", e);
         }
     };
 
